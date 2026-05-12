@@ -1,0 +1,155 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Modifier un utilisateur</h1>
+    <p class="text-gray-600 mt-1">Mettez à jour les informations de l'utilisateur</p>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Edit User Form -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+      <form method="POST" action="/admin/user/<%= user.idusers %>/update" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Personal Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">Informations personnelles</h3>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+              <input type="text" name="nom" value="<%= user.nom %>" required 
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+              <input type="text" name="prenom" value="<%= user.prenom %>" required 
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input type="email" name="email" value="<%= user.email %>" required 
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+              <input type="tel" name="telephone" value="<%= user.telephone || '' %>" 
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          
+          <!-- Role and Status -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">Rôle et statut</h3>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
+              <select name="role_libelle" required 
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <% roles.forEach(function(role) { %>
+                  <option value="<%= role.libellé %>" <%= user.role_libelle === role.libellé ? 'selected' : '' %>>
+                    <%= role.libellé %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+              <select name="statut" required 
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="actif" <%= user.statut === 'actif' ? 'selected' : '' %>>Actif</option>
+                <option value="suspendu" <%= user.statut === 'suspendu' ? 'selected' : '' %>>Suspendu</option>
+                <option value="inactif" <%= user.statut === 'inactif' ? 'selected' : '' %>>Inactif</option>
+              </select>
+            </div>
+            
+            <!-- User Info Display -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Informations système</h4>
+              <div class="space-y-1 text-sm text-gray-600">
+                <p><strong>ID:</strong> <%= user.idusers %></p>
+                <p><strong>Date de création:</strong> <%= user.date_creation ? new Date(user.date_creation).toLocaleDateString('fr-FR') : '---' %></p>
+                <p><strong>Dernière mise à jour:</strong> <%= user.date_modification ? new Date(user.date_modification).toLocaleDateString('fr-FR') : '---' %></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+          <a href="/admin/users" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Retour
+          </a>
+          <div class="space-x-4">
+            <button type="reset" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+              <i class="fas fa-undo mr-2"></i>Réinitialiser
+            </button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Form validation
+  const form = document.querySelector('form');
+  const emailInput = document.querySelector('input[name="email"]');
+  
+  form.addEventListener('submit', function(e) {
+    // Basic email validation
+    const email = emailInput.value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+      e.preventDefault();
+      alert('Veuillez entrer une adresse email valide');
+      emailInput.focus();
+      return false;
+    }
+    
+    // Confirm role change if different
+    const roleSelect = document.querySelector('select[name="role_libelle"]');
+    if (roleSelect.value !== '<%= user.role_libelle %>') {
+      if (!confirm('Êtes-vous sûr de vouloir changer le rôle de cet utilisateur ?')) {
+        e.preventDefault();
+        return false;
+      }
+    }
+    
+    // Confirm status change if different
+    const statusSelect = document.querySelector('select[name="statut"]');
+    if (statusSelect.value !== '<%= user.statut %>') {
+      if (!confirm('Êtes-vous sûr de vouloir changer le statut de cet utilisateur ?')) {
+        e.preventDefault();
+        return false;
+      }
+    }
+  });
+});
+</script>

@@ -1,0 +1,27 @@
+{
+  "name": "bralima-supply-chain",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "build-css": "tailwindcss -i ./public/css/style.css -o ./public/css/output.css --watch"
+  },
+  "dependencies": {
+    "@ericblade/quagga2": "^1.12.1",
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "mysql2": "^3.11.0",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.5",
+    "pdfkit": "^0.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "tailwindcss": "^4.2.4"
+  }
+}

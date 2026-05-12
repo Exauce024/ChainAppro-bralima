@@ -1,0 +1,561 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800" data-translate="parametres">Paramètres</h1>
+    <p class="text-gray-600 mt-1">Gérez vos préférences et configuration</p>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Settings Navigation Tabs -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="border-b border-gray-200">
+      <nav class="flex space-x-8 px-6" aria-label="Tabs">
+        <button class="settings-tab py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600" data-tab="profile">
+          <span data-translate="profil">Profil</span>
+        </button>
+        <% if (user && user.role_libelle === 'gestionnaire') { %>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="stocks">
+            Stocks
+          </button>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="notifications">
+            Notifications
+          </button>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="reports">
+            Rapports
+          </button>
+        <% } else if (user && user.role_libelle === 'admin') { %>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="system">
+            <span data-translate="systeme">Système</span>
+          </button>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="security">
+            <span data-translate="securite">Sécurité</span>
+          </button>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="backups">
+            <span data-translate="sauvegardes">Sauvegardes</span>
+          </button>
+        <% } else if (user && user.role_libelle === 'magasinier') { %>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="operations">
+            Opérations
+          </button>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="notifications">
+            Notifications
+          </button>
+        <% } else if (user && user.role_libelle === 'fournisseur') { %>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="profile-info">
+            Informations
+          </button>
+          <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="orders">
+            Commandes
+          </button>
+        <% } %>
+        <button class="settings-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="interface">
+          <span data-translate="interface">Interface</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+      <!-- Profile Tab (Common for all roles) -->
+      <div id="profile-tab" class="tab-content">
+        <form method="POST" action="/settings/password" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Nom</label>
+                  <input type="text" value="<%= user.nom || '' %>" disabled class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Prénom</label>
+                  <input type="text" value="<%= user.prenom || '' %>" disabled class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Email</label>
+                  <input type="email" value="<%= user.email || '' %>" disabled class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Rôle</label>
+                  <input type="text" value="<%= user.role_libelle || '' %>" disabled class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-4">Changer le mot de passe</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Mot de passe actuel</label>
+                  <input type="password" name="currentPassword" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
+                  <input type="password" name="newPassword" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Confirmer le nouveau mot de passe</label>
+                  <input type="password" name="confirmPassword" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  Mettre à jour le mot de passe
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Gestionnaire Specific Tabs -->
+      <% if (user && user.role_libelle === 'gestionnaire') { %>
+        <!-- Stocks Tab -->
+        <div id="stocks-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres des stocks</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Seuil d'alerte par défaut</label>
+                <input type="number" name="stocks.defaultSeuilAlerte" value="<%= settingsData.stocks?.defaultSeuilAlerte || 10 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Quantité minimale avant alerte</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Seuil critique par défaut</label>
+                <input type="number" name="stocks.defaultSeuilCritique" value="<%= settingsData.stocks?.defaultSeuilCritique || 5 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Quantité critique nécessitant une action immédiate</p>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <input type="checkbox" name="stocks.autoGenerateAlerts" <%= settingsData.stocks?.autoGenerateAlertes ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              <label class="ml-2 block text-sm text-gray-700">Générer automatiquement les alertes</label>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres
+            </button>
+          </form>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Préférences de notification</h3>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.emailAlerts" <%= settingsData.notifications?.emailAlerts ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Recevoir les alertes par email</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.stockAlerts" <%= settingsData.notifications?.stockAlerts ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Alertes de stock</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.commandeAlerts" <%= settingsData.notifications?.commandeAlerts ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Alertes de commandes</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.dailyReports" <%= settingsData.notifications?.dailyReports ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Rapports quotidiens</label>
+              </div>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les préférences
+            </button>
+          </form>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres des rapports</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Format par défaut</label>
+                <select name="reports.defaultFormat" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="pdf" <%= settingsData.reports?.defaultFormat === 'pdf' ? 'selected' : '' %>>PDF</option>
+                  <option value="excel" <%= settingsData.reports?.defaultFormat === 'excel' ? 'selected' : '' %>>Excel</option>
+                  <option value="csv" <%= settingsData.reports?.defaultFormat === 'csv' ? 'selected' : '' %>>CSV</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Rafraîchissement automatique (secondes)</label>
+                <input type="number" name="reports.autoRefresh" value="<%= settingsData.reports?.autoRefresh || 300 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+            <div class="flex items-center">
+              <input type="checkbox" name="reports.includeCharts" <%= settingsData.reports?.includeCharts ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              <label class="ml-2 block text-sm text-gray-700">Inclure les graphiques dans les rapports</label>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres
+            </button>
+          </form>
+        </div>
+      <% } %>
+
+      <!-- Admin Specific Tabs -->
+      <% if (user && user.role_libelle === 'admin') { %>
+        <!-- System Tab -->
+        <div id="system-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres système</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Nom de l'application</label>
+                <input type="text" name="system.appName" value="<%= settingsData.system?.appName || 'ChainAppro' %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Version</label>
+                <input type="text" name="system.version" value="<%= settingsData.system?.version || '1.0.0' %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Environnement</label>
+                <select name="system.environment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="development" <%= settingsData.system?.environment === 'development' ? 'selected' : '' %>>Développement</option>
+                  <option value="staging" <%= settingsData.system?.environment === 'staging' ? 'selected' : '' %>>Test</option>
+                  <option value="production" <%= settingsData.system?.environment === 'production' ? 'selected' : '' %>>Production</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Fuseau horaire</label>
+                <select name="system.timezone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="UTC" <%= settingsData.system?.timezone === 'UTC' ? 'selected' : '' %>>UTC</option>
+                  <option value="Africa/Kinshasa" <%= settingsData.system?.timezone === 'Africa/Kinshasa' ? 'selected' : '' %>>Kinshasa (GMT+1)</option>
+                  <option value="Europe/Paris" <%= settingsData.system?.timezone === 'Europe/Paris' ? 'selected' : '' %>>Paris (GMT+1)</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="system.maintenanceMode" <%= settingsData.system?.maintenanceMode ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Mode maintenance</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="system.debugMode" <%= settingsData.system?.debugMode ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Mode debug</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="system.enableLogs" <%= settingsData.system?.enableLogs !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Activer les logs système</label>
+              </div>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres système
+            </button>
+          </form>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="security-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres de sécurité</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Durée de session (minutes)</label>
+                <input type="number" name="security.sessionTimeout" value="<%= settingsData.security?.sessionTimeout || 120 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Temps avant déconnexion automatique</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Tentatives de connexion max</label>
+                <input type="number" name="security.maxLoginAttempts" value="<%= settingsData.security?.maxLoginAttempts || 5 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Avant blocage du compte</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Longueur minimale du mot de passe</label>
+                <input type="number" name="security.minPasswordLength" value="<%= settingsData.security?.minPasswordLength || 8 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Délai de blocage (minutes)</label>
+                <input type="number" name="security.lockoutDuration" value="<%= settingsData.security?.lockoutDuration || 15 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Après tentatives échouées</p>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="security.requireTwoFactor" <%= settingsData.security?.requireTwoFactor ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Exiger l'authentification à deux facteurs</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="security.passwordComplexity" <%= settingsData.security?.passwordComplexity !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Exiger la complexité des mots de passe</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="security.sessionEncryption" <%= settingsData.security?.sessionEncryption !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Chiffrer les sessions</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="security.ipWhitelist" <%= settingsData.security?.ipWhitelist ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Activer la liste blanche d'IP</label>
+              </div>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres de sécurité
+            </button>
+          </form>
+        </div>
+
+        <!-- Backups Tab -->
+        <div id="backups-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres de sauvegarde</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Fréquence de sauvegarde</label>
+                <select name="backups.frequency" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="daily" <%= settingsData.backups?.frequency === 'daily' ? 'selected' : '' %>>Quotidienne</option>
+                  <option value="weekly" <%= settingsData.backups?.frequency === 'weekly' ? 'selected' : '' %>>Hebdomadaire</option>
+                  <option value="monthly" <%= settingsData.backups?.frequency === 'monthly' ? 'selected' : '' %>>Mensuelle</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Heure de sauvegarde</label>
+                <input type="time" name="backups.time" value="<%= settingsData.backups?.time || '02:00' %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Nombre de sauvegardes à conserver</label>
+                <input type="number" name="backups.retention" value="<%= settingsData.backups?.retention || 7 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">En jours</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Type de sauvegarde</label>
+                <select name="backups.type" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="full" <%= settingsData.backups?.type === 'full' ? 'selected' : '' %>>Complète</option>
+                  <option value="incremental" <%= settingsData.backups?.type === 'incremental' ? 'selected' : '' %>>Incrémentielle</option>
+                  <option value="differential" <%= settingsData.backups?.type === 'differential' ? 'selected' : '' %>>Différentielle</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="backups.autoBackup" <%= settingsData.backups?.autoBackup !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Activer les sauvegardes automatiques</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="backups.compressBackups" <%= settingsData.backups?.compressBackups !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Compresser les sauvegardes</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="backups.encryptBackups" <%= settingsData.backups?.encryptBackups ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Chiffrer les sauvegardes</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="backups.emailNotifications" <%= settingsData.backups?.emailNotifications ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Notifier par email les sauvegardes</label>
+              </div>
+            </div>
+            <div class="mt-6">
+              <h4 class="text-md font-medium text-gray-900 mb-4">Dernières sauvegardes</h4>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600">Aucune sauvegarde trouvée</p>
+              </div>
+            </div>
+            <div class="flex space-x-4">
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Sauvegarder les paramètres
+              </button>
+              <button type="button" onclick="createManualBackup()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-download mr-2"></i>Sauvegarde manuelle
+              </button>
+            </div>
+          </form>
+        </div>
+      <% } %>
+
+      <!-- Interface Tab (Common for all roles) -->
+      <div id="interface-tab" class="tab-content hidden">
+        <form method="POST" action="/settings" class="space-y-6">
+          <h3 class="text-lg font-medium text-gray-900">Paramètres de l'interface</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Langue</label>
+              <select name="interface.language" onchange="changeLanguage(this.value)" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="fr" <%= settingsData.interface?.language === 'fr' ? 'selected' : '' %>>Français</option>
+                <option value="en" <%= settingsData.interface?.language === 'en' ? 'selected' : '' %>>English</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Format de date</label>
+              <select name="interface.dateFormat" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="DD/MM/YYYY" <%= settingsData.interface?.dateFormat === 'DD/MM/YYYY' ? 'selected' : '' %>>DD/MM/YYYY</option>
+                <option value="MM/DD/YYYY" <%= settingsData.interface?.dateFormat === 'MM/DD/YYYY' ? 'selected' : '' %>>MM/DD/YYYY</option>
+                <option value="YYYY-MM-DD" <%= settingsData.interface?.dateFormat === 'YYYY-MM-DD' ? 'selected' : '' %>>YYYY-MM-DD</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Sauvegarder les préférences
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tab switching functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const tabs = document.querySelectorAll('.settings-tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const targetTab = this.dataset.tab;
+      
+      // Hide all tab contents
+      tabContents.forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      // Remove active styling from all tabs
+      tabs.forEach(t => {
+        t.classList.remove('border-blue-500', 'text-blue-600');
+        t.classList.add('border-transparent', 'text-gray-500');
+      });
+      
+      // Show target tab content
+      document.getElementById(targetTab + '-tab').classList.remove('hidden');
+      
+      // Add active styling to clicked tab
+      this.classList.remove('border-transparent', 'text-gray-500');
+      this.classList.add('border-blue-500', 'text-blue-600');
+    });
+  });
+
+  // Simple language change function
+window.changeLanguage = function(language) {
+  console.log('Changement de langue vers:', language);
+  
+  // Show loading message
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+  loadingDiv.innerHTML = `
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+      <div class="flex items-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+        <span>Changement de langue en cours...</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(loadingDiv);
+  
+  // Send AJAX request to update language
+  fetch('/settings/language', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({ language: language })
+  })
+  .then(response => {
+    console.log('Réponse reçue:', response);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Données reçues:', data);
+    if (data.success) {
+      // Save language to localStorage
+      localStorage.setItem('language', language);
+      
+      // Apply translation immediately without reload
+      if (window.translatePage) {
+        translatePage(language);
+      }
+      
+      // Update HTML lang attribute
+      document.documentElement.lang = language;
+      
+      // Remove loading message
+      if (loadingDiv.parentNode) {
+        loadingDiv.parentNode.removeChild(loadingDiv);
+      }
+      
+      // Show success message
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      successDiv.textContent = language === 'en' ? 'Language changed successfully!' : 'Langue changée avec succès!';
+      document.body.appendChild(successDiv);
+      
+      // Remove success message after 3 seconds
+      setTimeout(() => {
+        if (successDiv.parentNode) {
+          successDiv.parentNode.removeChild(successDiv);
+        }
+      }, 3000);
+      
+    } else {
+      console.error('Erreur lors du changement de langue:', data.error);
+      alert('Erreur lors du changement de langue: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    alert('Erreur lors du changement de langue: ' + error.message);
+  })
+  .finally(() => {
+    // Remove loading message
+    if (loadingDiv.parentNode) {
+      loadingDiv.parentNode.removeChild(loadingDiv);
+    }
+  });
+};
+});
+
+// Manual backup function
+function createManualBackup() {
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+  loadingDiv.innerHTML = `
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+      <div class="flex items-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mr-3"></div>
+        <span>Création de la sauvegarde en cours...</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(loadingDiv);
+  
+  fetch('/settings/backup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Sauvegarde créée avec succès!');
+      // Reload backup list
+      location.reload();
+    } else {
+      alert('Erreur lors de la création de la sauvegarde: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la création de la sauvegarde');
+  })
+  .finally(() => {
+    if (loadingDiv.parentNode) {
+      loadingDiv.parentNode.removeChild(loadingDiv);
+    }
+  });
+}
+</script>

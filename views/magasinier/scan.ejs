@@ -1,0 +1,190 @@
+<%
+var content = `
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-3xl font-bold text-slate-800">Scan Mobile - Réception Marchandise</h2>
+    <p class="text-slate-500 mt-1">Scannez les codes-barres pour identifier les produits</p>
+  </div>
+
+  <!-- Info Banner -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center space-x-3">
+    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+      <i class="fas fa-mobile-alt text-blue-600"></i>
+    </div>
+    <div>
+      <p class="text-blue-800 font-medium">Ouvrez cette page sur votre smartphone ou tablette</p>
+      <p class="text-blue-600 text-sm">Utilisez la caméra pour scanner les codes-barres des produits</p>
+    </div>
+  </div>
+
+  <!-- Scanner Container -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-barcode text-emerald-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Scanner de codes-barres</h3>
+          <p class="text-sm text-slate-500">Positionnez le code-barres devant la caméra</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <div id="scanner-container" class="w-full max-w-2xl mx-auto bg-slate-900 rounded-xl overflow-hidden relative" style="min-height: 400px;">
+        <video id="video" class="w-full h-full object-cover"></video>
+        <div id="scanner-overlay" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="w-64 h-64 border-4 border-emerald-500 rounded-lg opacity-50"></div>
+        </div>
+      </div>
+      
+      <div id="result" class="mt-6 p-4 rounded-xl text-center font-semibold text-lg transition-all duration-200"></div>
+      
+      <div class="mt-6 flex justify-center space-x-4">
+        <button onclick="startScanner()" id="startBtn" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+          <i class="fas fa-play"></i>
+          <span>Démarrer le Scan</span>
+        </button>
+        <button onclick="stopScanner()" id="stopBtn" class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl" disabled>
+          <i class="fas fa-stop"></i>
+          <span>Arrêter</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+      <i class="fas fa-info-circle text-blue-600"></i>
+      <span>Instructions</span>
+    </h3>
+    <ul class="space-y-3 text-slate-600">
+      <li class="flex items-start space-x-3">
+        <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span class="text-blue-600 text-sm font-bold">1</span>
+        </span>
+        <span>Cliquez sur "Démarrer le Scan" pour activer la caméra</span>
+      </li>
+      <li class="flex items-start space-x-3">
+        <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span class="text-blue-600 text-sm font-bold">2</span>
+        </span>
+        <span>Positionnez le code-barres dans le cadre de scan</span>
+      </li>
+      <li class="flex items-start space-x-3">
+        <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span class="text-blue-600 text-sm font-bold">3</span>
+        </span>
+        <span>Le système détectera automatiquement le code et affichera les informations du produit</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/quagga2@1.0.0/dist/quagga2.min.js"></script>
+<script>
+let scannerActive = false;
+
+function startScanner() {
+  if (scannerActive) return;
+  
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const result = document.getElementById('result');
+  
+  startBtn.disabled = true;
+  startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  stopBtn.disabled = false;
+  stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  
+  result.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-slate-100 text-slate-600';
+  result.textContent = 'Initialisation du scanner...';
+  
+  Quagga2.init({
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector('#video'),
+      constraints: {
+        width: 640,
+        height: 480,
+        facingMode: "environment"
+      },
+    },
+    decoder: {
+      readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "code_39_vin_reader", "codabar_reader", "upc_reader", "upc_e_reader", "i2of5_reader"]
+    },
+  }, function(err) {
+    if (err) {
+      console.log(err);
+      result.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-red-50 text-red-600';
+      result.textContent = 'Erreur: Impossible d\\'accéder à la caméra';
+      startBtn.disabled = false;
+      startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      stopBtn.disabled = true;
+      stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      return;
+    }
+    Quagga2.start();
+    scannerActive = true;
+    result.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-emerald-50 text-emerald-600';
+    result.textContent = 'Scanner actif - Positionnez un code-barres';
+  });
+}
+
+function stopScanner() {
+  if (!scannerActive) return;
+  
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const result = document.getElementById('result');
+  
+  Quagga2.stop();
+  scannerActive = false;
+  
+  startBtn.disabled = false;
+  startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  stopBtn.disabled = true;
+  stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  
+  result.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-slate-100 text-slate-600';
+  result.textContent = 'Scanner arrêté';
+}
+
+Quagga2.onDetected(function(result) {
+  const code = result.codeResult.code;
+  const resultDiv = document.querySelector('#result');
+  resultDiv.textContent = 'Code scanné: ' + code;
+  resultDiv.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-blue-50 text-blue-600';
+  
+  // Envoyer le code au serveur pour traitement
+  fetch('/magasinier/scan/process', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ barcode: code })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      resultDiv.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-emerald-50 text-emerald-600';
+      resultDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Produit trouvé: ' + data.product;
+    } else {
+      resultDiv.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-red-50 text-red-600';
+      resultDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Produit non trouvé';
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    resultDiv.className = 'mt-6 p-4 rounded-xl text-center font-semibold text-lg bg-red-50 text-red-600';
+    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Erreur de communication';
+  });
+});
+</script>
+`;
+%>
+<%- include('../layout', { body: content }) %>

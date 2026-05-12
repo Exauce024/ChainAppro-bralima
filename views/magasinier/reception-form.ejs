@@ -1,0 +1,145 @@
+<%
+var content = `
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-3xl font-bold text-slate-800">Nouvelle réception de marchandise</h2>
+    <p class="text-slate-500 mt-1">Enregistrez l'arrivée de produits dans l'entrepôt</p>
+  </div>
+
+  <!-- Form Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-truck-loading text-blue-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Informations de réception</h3>
+          <p class="text-sm text-slate-500">Détails de la livraison</p>
+        </div>
+      </div>
+    </div>
+    
+    <form method="POST" action="/magasinier/reception" class="p-6 space-y-6">
+      <div>
+        <label for="idcommande" class="block text-sm font-medium text-slate-700 mb-2">Commande liée (optionnel)</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-shopping-cart text-slate-400"></i>
+          </div>
+          <select name="idcommande" id="idcommande" 
+            class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white">
+            <option value="">Aucune commande</option>`;
+
+commandes.forEach(function(c) {
+  content += `
+            <option value="${c.idcommande}">${c.reference}</option>`;
+});
+
+content += `
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <i class="fas fa-chevron-down text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label for="idmp" class="block text-sm font-medium text-slate-700 mb-2">Matière première</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-box text-slate-400"></i>
+          </div>
+          <select name="idmp" id="idmp" required 
+            class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white">
+            <option value="">Sélectionner une matière</option>`;
+
+matieres.forEach(function(m) {
+  content += `
+            <option value="${m.idmp}">${m.libellé}</option>`;
+});
+
+content += `
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <i class="fas fa-chevron-down text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="qtereçu" class="block text-sm font-medium text-slate-700 mb-2">Quantité reçue</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-cubes text-slate-400"></i>
+            </div>
+            <input type="number" name="qtereçu" id="qtereçu" required 
+              class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Ex: 100">
+          </div>
+        </div>
+        
+        <div>
+          <label for="lotnumero" class="block text-sm font-medium text-slate-700 mb-2">Numéro de lot</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-hashtag text-slate-400"></i>
+            </div>
+            <input type="text" name="lotnumero" id="lotnumero" 
+              class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Ex: LOT-2026-001">
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="dateperemption" class="block text-sm font-medium text-slate-700 mb-2">Date de péremption</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-calendar text-slate-400"></i>
+            </div>
+            <input type="date" name="dateperemption" id="dateperemption" 
+              class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+          </div>
+        </div>
+        
+        <div>
+          <label for="identret" class="block text-sm font-medium text-slate-700 mb-2">Entrepôt</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-warehouse text-slate-400"></i>
+            </div>
+            <input type="number" name="identret" id="identret" value="1" required 
+              class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="ID entrepôt">
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label for="attribut" class="block text-sm font-medium text-slate-700 mb-2">Attributs supplémentaires</label>
+        <textarea name="attribut" id="attribut" rows="4" 
+          class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+          placeholder="Ajoutez des notes ou informations supplémentaires..."></textarea>
+      </div>
+      
+      <div class="pt-6 border-t border-slate-200 flex justify-end space-x-4">
+        <a href="/magasinier/dashboard" class="inline-flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl transition-all duration-200">
+          <i class="fas fa-times"></i>
+          <span>Annuler</span>
+        </a>
+        <button type="submit" 
+          class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+          <i class="fas fa-check"></i>
+          <span>Enregistrer la réception</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+%>
+<%- include('../layout', { body: content }) %>

@@ -1,0 +1,204 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Mon Profil</h1>
+    <p class="text-gray-600 mt-1">Consultez et modifiez vos informations personnelles</p>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <% if (profileData && profileData.type === 'interne') { %>
+    <!-- Profil Utilisateur Interne (Admin, Gestionnaire, Magasinier) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Carte d'information principale -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="text-center">
+            <div class="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+              <%= profileData.prenom && profileData.nom ? (profileData.prenom.charAt(0) + profileData.nom.charAt(0)).toUpperCase() : profileData.nom ? profileData.nom.charAt(0).toUpperCase() : 'U' %>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">
+              <%= profileData.prenom && profileData.nom ? profileData.prenom + ' ' + profileData.nom : profileData.nom || 'Non défini' %>
+            </h3>
+            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full mt-2">
+              <%= profileData.role || 'Utilisateur' %>
+            </span>
+            <div class="mt-4 text-left space-y-2">
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-envelope w-5 mr-2"></i>
+                <span class="text-sm"><%= profileData.email %></span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-phone w-5 mr-2"></i>
+                <span class="text-sm"><%= profileData.telephone %></span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-calendar w-5 mr-2"></i>
+                <span class="text-sm">Créé le <%= profileData.date_creation ? new Date(profileData.date_creation).toLocaleDateString('fr-FR') : 'Non défini' %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire de modification -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Informations personnelles</h3>
+            <p class="text-sm text-gray-500 mt-1">Modifiez vos informations de contact</p>
+          </div>
+          <form method="POST" action="/profile/update" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                <input type="text" value="<%= profileData.nom || '' %>" disabled class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                <p class="text-xs text-gray-500 mt-1">Le nom ne peut pas être modifié</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+                <input type="text" value="<%= profileData.prenom || '' %>" disabled class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                <p class="text-xs text-gray-500 mt-1">Le prénom ne peut pas être modifié</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input type="email" name="email" value="<%= profileData.email %>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                <input type="tel" name="telephone" value="<%= profileData.telephone %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+              <a href="/dashboard" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Annuler
+              </a>
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  <% } else if (profileData && profileData.type === 'fournisseur') { %>
+    <!-- Profil Fournisseur -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Carte d'information principale -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="text-center">
+            <div class="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+              <%= profileData.raison_sociale ? profileData.raison_sociale.charAt(0).toUpperCase() : 'F' %>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800"><%= profileData.raison_sociale || 'Non défini' %></h3>
+            <span class="inline-block px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full mt-2">
+              Fournisseur
+            </span>
+            <div class="mt-4 text-left space-y-2">
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-envelope w-5 mr-2"></i>
+                <span class="text-sm"><%= profileData.email %></span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-phone w-5 mr-2"></i>
+                <span class="text-sm"><%= profileData.telephone %></span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-map-marker-alt w-5 mr-2"></i>
+                <span class="text-sm"><%= profileData.adresse %>, <%= profileData.ville %></span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-flag w-5 mr-2"></i>
+                <span class="text-sm"><%= profileData.pays %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire de modification -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Informations de l'entreprise</h3>
+            <p class="text-sm text-gray-500 mt-1">Modifiez vos informations de contact et d'adresse</p>
+          </div>
+          <form method="POST" action="/profile/update" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Raison sociale</label>
+                <input type="text" value="<%= profileData.raison_sociale || '' %>" disabled class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                <p class="text-xs text-gray-500 mt-1">La raison sociale ne peut pas être modifiée</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">NIF</label>
+                <input type="text" value="<%= profileData.nif || '' %>" disabled class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                <p class="text-xs text-gray-500 mt-1">Le NIF ne peut pas être modifié</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input type="email" name="email" value="<%= profileData.email %>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                <input type="tel" name="telephone" value="<%= profileData.telephone %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                <input type="text" name="adresse" value="<%= profileData.adresse %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+                <input type="text" name="ville" value="<%= profileData.ville %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pays</label>
+                <input type="text" name="pays" value="<%= profileData.pays %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+              <a href="/dashboard" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Annuler
+              </a>
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  <% } else { %>
+    <!-- Profil non trouvé -->
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <i class="fas fa-exclamation-triangle text-amber-500 text-4xl mb-4"></i>
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Profil non trouvé</h3>
+      <p class="text-gray-600 mb-4">Impossible de charger les informations de votre profil.</p>
+      <a href="/dashboard" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        Retour au tableau de bord
+      </a>
+    </div>
+  <% } %>
+</div>

@@ -1,0 +1,268 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Détails de la Commande n°<%= commande.idcommande %></h1>
+    <p class="text-gray-600 mt-1">Informations détaillées de la commande</p>
+  </div>
+
+  <!-- Order Info Card -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-info-circle text-blue-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">Informations générales</h3>
+          <p class="text-sm text-gray-500">Détails de la commande</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-500">Fournisseur</p>
+          <p class="text-lg font-semibold text-gray-900"><%= commande.raisonsocial || 'N/A' %></p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Date de création</p>
+          <p class="text-lg font-semibold text-gray-900"><%= commande.datecreation ? new Date(commande.datecreation).toLocaleDateString('fr-FR') : 'N/A' %></p>
+        </div>
+      </div>
+      
+      <div>
+        <p class="text-sm text-gray-500">Statut</p>
+        <% 
+        var badgeClass = 'bg-gray-100 text-gray-800';
+        if (commande.statut === 'approuvee') { 
+          badgeClass = 'bg-emerald-100 text-emerald-800'; 
+        } else if (commande.statut === 'refusee') { 
+          badgeClass = 'bg-red-100 text-red-800'; 
+        } else if (commande.statut === 'envoyee') { 
+          badgeClass = 'bg-blue-100 text-blue-800'; 
+        } else if (commande.statut === 'livree') { 
+          badgeClass = 'bg-green-100 text-green-800'; 
+        }
+        %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= badgeClass %>">
+          <span class="w-2 h-2 rounded-full <%= commande.statut === 'approuvee' ? 'bg-emerald-500' : commande.statut === 'refusee' ? 'bg-red-500' : commande.statut === 'envoyee' ? 'bg-blue-500' : commande.statut === 'livree' ? 'bg-green-500' : 'bg-gray-500' %> mr-2"></span>
+          <%= commande.statut || 'N/A' %>
+        </span>
+      </div>
+      
+      <div>
+        <p class="text-sm text-gray-500">Détails</p>
+        <p class="text-gray-800 mt-1"><%= commande.details || 'Aucun détail disponible' %></p>
+      </div>
+      
+      <div>
+        <p class="text-sm text-gray-500">Montant total</p>
+        <p class="text-2xl font-bold text-gray-900"><%= commande.montant ? commande.montant.toLocaleString('fr-FR') + ' FCFA' : '---' %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Items -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-box text-purple-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">Articles commandés</h3>
+          <p class="text-sm text-gray-500">Détail des produits</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <!-- Sample data - in real app this would come from database -->
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Produit A</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5,000 FCFA</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">50,000 FCFA</td>
+          </tr>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Produit B</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8,000 FCFA</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">40,000 FCFA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-history text-green-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">Historique</h3>
+          <p class="text-sm text-gray-500">Suivi de la commande</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <div class="space-y-4">
+        <div class="flex items-start space-x-3">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-paper-plane text-blue-600 text-xs"></i>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-900">Commande envoyée</p>
+            <p class="text-xs text-gray-500"><%= commande.datecreation ? new Date(commande.datecreation).toLocaleString('fr-FR') : '---' %></p>
+          </div>
+        </div>
+        
+        <% if (commande.statut === 'approuvee' || commande.statut === 'livree') { %>
+          <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-check text-emerald-600 text-xs"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Commande approuvée</p>
+              <p class="text-xs text-gray-500">En attente de livraison</p>
+            </div>
+          </div>
+        <% } %>
+        
+        <% if (commande.statut === 'livree') { %>
+          <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-truck text-green-600 text-xs"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Commande livrée</p>
+              <p class="text-xs text-gray-500">Livraison complétée</p>
+            </div>
+          </div>
+        <% } %>
+        
+        <% if (commande.statut === 'refusee') { %>
+          <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-times text-red-600 text-xs"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Commande refusée</p>
+              <p class="text-xs text-gray-500">La commande a été refusée</p>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex justify-between items-center">
+    <a href="/fournisseur/dashboard" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+      <i class="fas fa-arrow-left mr-2"></i>Retour au dashboard
+    </a>
+    
+    <div class="space-x-4">
+      <% if (commande.statut === 'approuvee') { %>
+        <button onclick="confirmDelivery()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          <i class="fas fa-check mr-2"></i>Confirmer la livraison
+        </button>
+      <% } %>
+      
+      <button onclick="printOrder()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+        <i class="fas fa-print mr-2"></i>Imprimer
+      </button>
+      
+      <button onclick="exportOrder()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <i class="fas fa-download mr-2"></i>Exporter PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmDelivery() {
+  console.log('🔍 Début de confirmDelivery pour commande ID:', <%= commande.idcommande %>);
+  
+  if (confirm('Êtes-vous sûr de vouloir confirmer la livraison de cette commande ?')) {
+    console.log('✅ Confirmation utilisateur reçue');
+    
+    // Envoyer la requête POST pour confirmer la livraison
+    const url = '/fournisseur/commande/<%= commande.idcommande %>/confirm-delivery';
+    console.log('🌐 Envoi requête vers:', url);
+    
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      console.log('📡 Réponse reçue, status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('📊 Données reçues:', data);
+      
+      if (data.success) {
+        alert('Livraison confirmée avec succès');
+        console.log('✅ Succès, rechargement de la page');
+        window.location.reload();
+      } else {
+        console.error('❌ Erreur serveur:', data.error);
+        alert('Erreur: ' + (data.error || 'Impossible de confirmer la livraison'));
+      }
+    })
+    .catch(error => {
+      console.error('💥 Erreur fetch:', error);
+      alert('Erreur lors de la confirmation de la livraison');
+    });
+  } else {
+    console.log('❌ Confirmation utilisateur annulée');
+  }
+}
+
+function printOrder() {
+  window.print();
+}
+
+function exportOrder() {
+  const commande = <%- JSON.stringify(commande) %>;
+  
+  // Create a simple text representation
+  let content = `COMMANDE N°${commande.idcommande}\n\n`;
+  content += `Fournisseur: ${commande.raisonsocial || 'N/A'}\n`;
+  content += `Date: ${commande.datecreation || 'N/A'}\n`;
+  content += `Statut: ${commande.statut || 'N/A'}\n`;
+  content += `Montant: ${commande.montant || 'N/A'} FCFA\n`;
+  content += `Détails: ${commande.details || 'Aucun détail disponible'}\n`;
+  
+  // Create blob and download
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `commande_${commande.idcommande}.txt`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>

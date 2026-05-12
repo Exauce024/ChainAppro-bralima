@@ -1,0 +1,367 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Logs d'Audit</h1>
+    <p class="text-gray-600 mt-1">Consultez toutes les activités du système</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <div class="flex flex-wrap gap-4 items-end">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Action</label>
+        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Toutes les actions</option>
+          <option value="CREATE">Création</option>
+          <option value="UPDATE">Modification</option>
+          <option value="DELETE">Suppression</option>
+          <option value="LOGIN">Connexion</option>
+          <option value="LOGOUT">Déconnexion</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Utilisateur</label>
+        <input type="text" placeholder="Rechercher..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button onclick="filterLogs()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <i class="fas fa-search mr-2"></i>Filtrer
+      </button>
+      <button onclick="resetFilters()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+        <i class="fas fa-redo mr-2"></i>Réinitialiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Export Actions -->
+  <div class="flex justify-between items-center">
+    <div class="text-sm text-gray-600">
+      <span class="font-medium"><%= logs.length %></span> logs trouvés
+    </div>
+    <div class="flex space-x-2">
+      <a href="/admin/download-logs-pdf" 
+         class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 inline-flex items-center">
+        <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+      </a>
+    </div>
+  </div>
+
+  <!-- Logs Table -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Heure</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Détails</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% logs.forEach(function(log) { %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= new Date(log.horodatage).toLocaleString('fr-FR') %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% 
+                var badgeClass = 'bg-blue-100 text-blue-800';
+                if (log.action === 'CREATE') { 
+                  badgeClass = 'bg-green-100 text-green-800'; 
+                } else if (log.action === 'UPDATE') { 
+                  badgeClass = 'bg-yellow-100 text-yellow-800'; 
+                } else if (log.action === 'DELETE') { 
+                  badgeClass = 'bg-red-100 text-red-800'; 
+                } else if (log.action === 'LOGIN') { 
+                  badgeClass = 'bg-purple-100 text-purple-800'; 
+                } else if (log.action === 'LOGOUT') { 
+                  badgeClass = 'bg-gray-100 text-gray-800'; 
+                }
+                %>
+                
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= badgeClass %>">
+                  <%= log.action %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= log.module || '---' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-8 w-8">
+                    <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <% var initials = 'S'; %>
+                      <% if (log.nom) { initials = log.nom.charAt(0) + (log.prenom ? log.prenom.charAt(0) : ''); } %>
+                      <span class="text-gray-600 text-xs font-medium"><%= initials %></span>
+                    </div>
+                  </div>
+                  <div class="ml-3">
+                    <div class="text-sm font-medium text-gray-900">
+                      <%= log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système' %>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= log.ip_address || '---' %>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate" title="<%= log.detaillson %>">
+                <%= log.detaillson %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <button onclick="viewLogDetails('<%= log.idlogaudit %>')" class="text-blue-600 hover:text-blue-900" title="Voir les détails">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button onclick="exportSingleLog('<%= log.idlogaudit %>')" class="text-gray-600 hover:text-gray-900" title="Exporter">
+                    <i class="fas fa-download"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Précédent</a>
+        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Suivant</a>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Affichage de <span class="font-medium">1</span> à <span class="font-medium"><%= logs.length %></span> sur <span class="font-medium"><%= logs.length %></span> résultats
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">1</a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">2</a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">3</a>
+            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Store logs data for filtering and export
+const logsData = <%- JSON.stringify(logs) %>;
+
+// Filter logs function
+function filterLogs() {
+  const startDate = document.querySelector('input[type="date"]:nth-of-type(1)').value;
+  const endDate = document.querySelector('input[type="date"]:nth-of-type(2)').value;
+  const action = document.querySelector('select').value;
+  const userSearch = document.querySelector('input[placeholder="Rechercher..."]').value;
+  
+  let filteredLogs = logsData;
+  
+  // Filter by date range
+  if (startDate) {
+    filteredLogs = filteredLogs.filter(log => 
+      new Date(log.horodatage) >= new Date(startDate)
+    );
+  }
+  
+  if (endDate) {
+    filteredLogs = filteredLogs.filter(log => 
+      new Date(log.horodatage) <= new Date(endDate + ' 23:59:59')
+    );
+  }
+  
+  // Filter by action
+  if (action) {
+    filteredLogs = filteredLogs.filter(log => log.action === action);
+  }
+  
+  // Filter by user
+  if (userSearch) {
+    filteredLogs = filteredLogs.filter(log => 
+      (log.nom && log.nom.toLowerCase().includes(userSearch.toLowerCase())) ||
+      (log.prenom && log.prenom.toLowerCase().includes(userSearch.toLowerCase()))
+    );
+  }
+  
+  // Update table
+  updateLogsTable(filteredLogs);
+  
+  // Update count
+  document.querySelector('.font-medium').textContent = filteredLogs.length;
+}
+
+// Reset filters function
+function resetFilters() {
+  document.querySelector('input[type="date"]:nth-of-type(1)').value = '';
+  document.querySelector('input[type="date"]:nth-of-type(2)').value = '';
+  document.querySelector('select').value = '';
+  document.querySelector('input[placeholder="Rechercher..."]').value = '';
+  
+  // Reset table
+  updateLogsTable(logsData);
+  
+  // Reset count
+  document.querySelector('.font-medium').textContent = logsData.length;
+}
+
+// Update logs table
+function updateLogsTable(logs) {
+  const tbody = document.querySelector('tbody');
+  tbody.innerHTML = '';
+  
+  logs.forEach(function(log) {
+    var badgeClass = 'bg-blue-100 text-blue-800';
+    if (log.action === 'CREATE') { 
+      badgeClass = 'bg-green-100 text-green-800'; 
+    } else if (log.action === 'UPDATE') { 
+      badgeClass = 'bg-yellow-100 text-yellow-800'; 
+    } else if (log.action === 'DELETE') { 
+      badgeClass = 'bg-red-100 text-red-800'; 
+    } else if (log.action === 'LOGIN') { 
+      badgeClass = 'bg-purple-100 text-purple-800'; 
+    } else if (log.action === 'LOGOUT') { 
+      badgeClass = 'bg-gray-100 text-gray-800'; 
+    }
+    
+    var initials = 'S';
+    if (log.nom) { initials = log.nom.charAt(0) + (log.prenom ? log.prenom.charAt(0) : ''); }
+    
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-50';
+    row.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        ${new Date(log.horodatage).toLocaleString('fr-FR')}
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${badgeClass}">
+          ${log.action}
+        </span>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        ${log.module || '---'}
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 h-8 w-8">
+            <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+              <span class="text-gray-600 text-xs font-medium">${initials}</span>
+            </div>
+          </div>
+          <div class="ml-3">
+            <div class="text-sm font-medium text-gray-900">
+              ${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        ${log.ip_address || '---'}
+      </td>
+      <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate" title="${log.detaillson}">
+        ${log.detaillson}
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div class="flex space-x-2">
+          <button onclick="viewLogDetails('${log.idlogaudit}')" class="text-blue-600 hover:text-blue-900" title="Voir les détails">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button onclick="exportSingleLog('${log.idlogaudit}')" class="text-gray-600 hover:text-gray-900" title="Exporter">
+            <i class="fas fa-download"></i>
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Export to CSV function
+function exportCSV() {
+  const logs = logsData;
+  let csv = 'ID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
+  
+  logs.forEach(function(log) {
+    csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.ip_address || ''}","${log.detaillson.replace(/"/g, '""')}"\n`;
+  });
+  
+  // Create blob and download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `logs_audit_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Print logs function
+function printLogs() {
+  window.print();
+}
+
+// View log details function
+function viewLogDetails(logId) {
+  const log = logsData.find(l => l.idlogaudit == logId);
+  if (log) {
+    alert(`Détails du log #${logId}\n\nAction: ${log.action}\nModule: ${log.module || '---'}\nUtilisateur: ${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}\nIP: ${log.ip_address || '---'}\nDate: ${new Date(log.horodatage).toLocaleString('fr-FR')}\n\nDétails:\n${log.detaillson}`);
+  }
+}
+
+// Export single log function
+function exportSingleLog(logId) {
+  const log = logsData.find(l => l.idlogaudit == logId);
+  if (log) {
+    let csv = 'ID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
+    csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.ip_address || ''}","${log.detaillson.replace(/"/g, '""')}"`;
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `log_${logId}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+// Pagination functions
+function goToPage(page) {
+  console.log('Navigation vers la page:', page);
+  // Ici vous pourriez implémenter la vraie pagination
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Add enter key support for search
+  document.querySelector('input[placeholder="Rechercher..."]').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      filterLogs();
+    }
+  });
+});
+</script>

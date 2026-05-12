@@ -1,0 +1,119 @@
+<%
+var content = `
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-3xl font-bold text-slate-800">Détails de la Commande n°${commande.idcommande}</h2>
+    <p class="text-slate-500 mt-1">Informations détaillées de la commande</p>
+  </div>
+
+  <!-- Order Info Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-info-circle text-blue-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Informations générales</h3>
+          <p class="text-sm text-slate-500">Détails de la commande</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-slate-500">Fournisseur</p>
+          <p class="text-lg font-semibold text-slate-800">${commande.raisonsocial || 'N/A'}</p>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Date de création</p>
+          <p class="text-lg font-semibold text-slate-800">${commande.datecreation || 'N/A'}</p>
+        </div>
+      </div>
+      
+      <div>
+        <p class="text-sm text-slate-500">Statut</p>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${commande.statut === 'approuvee' ? 'bg-emerald-100 text-emerald-800' : commande.statut === 'refusee' ? 'bg-red-100 text-red-800' : commande.statut === 'envoyee' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800'}">
+          <span class="w-2 h-2 rounded-full ${commande.statut === 'approuvee' ? 'bg-emerald-500' : commande.statut === 'refusee' ? 'bg-red-500' : commande.statut === 'envoyee' ? 'bg-blue-500' : 'bg-slate-500'} mr-2"></span>
+          ${commande.statut || 'N/A'}
+        </span>
+      </div>
+      
+      <div>
+        <p class="text-sm text-slate-500">Détails</p>
+        <p class="text-slate-800 mt-1">${commande.details || 'Aucun détail disponible'}</p>
+      </div>
+    </div>
+  </div>`;
+
+if (commande.statut === 'envoyee') {
+  content += `
+  <!-- Response Form Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-reply text-emerald-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Répondre à cette commande</h3>
+          <p class="text-sm text-slate-500">Acceptez ou refusez la commande</p>
+        </div>
+      </div>
+    </div>
+    
+    <form method="POST" action="/fournisseur/commande/${commande.idcommande}/respond" class="p-6 space-y-4">
+      <div>
+        <label for="statut" class="block text-sm font-medium text-slate-700 mb-2">Votre réponse</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-check-circle text-slate-400"></i>
+          </div>
+          <select name="statut" id="statut" required 
+            class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white">
+            <option value="">Choisir une réponse...</option>
+            <option value="approuvee">Accepter la commande</option>
+            <option value="refusee">Refuser la commande</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <i class="fas fa-chevron-down text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label for="motifrefus" class="block text-sm font-medium text-slate-700 mb-2">Motif du refus (si refus)</label>
+        <textarea name="motifrefus" id="motifrefus" rows="3" 
+          class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+          placeholder="Expliquez pourquoi vous refusez cette commande..."></textarea>
+      </div>
+      
+      <div class="pt-4 border-t border-slate-200 flex justify-end space-x-4">
+        <a href="/fournisseur/dashboard" class="inline-flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl transition-all duration-200">
+          <i class="fas fa-arrow-left"></i>
+          <span>Retour</span>
+        </a>
+        <button type="submit" 
+          class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+          <i class="fas fa-paper-plane"></i>
+          <span>Envoyer la réponse</span>
+        </button>
+      </div>
+    </form>
+  </div>`;
+}
+
+content += `
+  <!-- Back Button -->
+  <div class="flex justify-start">
+    <a href="/fournisseur/dashboard" class="inline-flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl transition-all duration-200">
+      <i class="fas fa-arrow-left"></i>
+      <span>Retour au dashboard</span>
+    </a>
+  </div>
+</div>
+`;
+%>
+<%- include('../layout', { body: content }) %>

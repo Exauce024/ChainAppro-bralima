@@ -1,0 +1,140 @@
+<%
+var content = `
+<div class="space-y-8">
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-3xl font-bold text-slate-800">Portail Fournisseur</h2>
+    <p class="text-slate-500 mt-1">Gérez vos commandes et livraisons</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-blue-100 text-sm font-medium">Total commandes</p>
+          <p class="text-3xl font-bold mt-2">${commandes.length}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-shopping-cart text-2xl"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-emerald-100 text-sm font-medium">Livré</p>
+          <p class="text-3xl font-bold mt-2">${commandes.filter(c => c.statut === 'livree').length}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-check-circle text-2xl"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-amber-100 text-sm font-medium">En cours</p>
+          <p class="text-3xl font-bold mt-2">${commandes.filter(c => c.statut === 'en_cours' || c.statut === 'approuvee').length}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-clock text-2xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-list text-purple-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Mes Commandes</h3>
+          <p class="text-sm text-slate-500">Historique des commandes</p>
+        </div>
+      </div>
+    </div>
+    
+    ${commandes.length === 0 
+      ? '<div class="p-12 text-center"><div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-inbox text-slate-400 text-2xl"></i></div><p class="text-slate-500">Aucune commande pour le moment.</p></div>'
+      : `
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Référence</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Statut</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Détails</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">`
+    }
+
+    ${commandes.map(function(cmd) {
+      var statusColor = '';
+      var statusBg = '';
+      
+      switch(cmd.statut) {
+        case 'en_attente':
+          statusColor = 'text-amber-800';
+          statusBg = 'bg-amber-100';
+          break;
+        case 'approuvee':
+          statusColor = 'text-blue-800';
+          statusBg = 'bg-blue-100';
+          break;
+        case 'en_cours':
+          statusColor = 'text-purple-800';
+          statusBg = 'bg-purple-100';
+          break;
+        case 'livree':
+          statusColor = 'text-emerald-800';
+          statusBg = 'bg-emerald-100';
+          break;
+        case 'annulee':
+          statusColor = 'text-red-800';
+          statusBg = 'bg-red-100';
+          break;
+        default:
+          statusColor = 'text-slate-800';
+          statusBg = 'bg-slate-100';
+      }
+      
+      return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4">
+              <span class="font-mono font-medium text-slate-800">${cmd.reference}</span>
+            </td>
+            <td class="px-6 py-4 text-slate-600">${cmd.datecreation}</td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusBg} ${statusColor}">
+                <span class="w-2 h-2 rounded-full ${statusBg.replace('100', '500')} mr-2"></span>
+                ${cmd.statut}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-slate-600 text-sm">${cmd.details || '---'}</td>
+            <td class="px-6 py-4">
+              <a href="/fournisseur/commande/${cmd.idcommande}" class="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                <i class="fas fa-eye"></i>
+                <span>Voir détails</span>
+              </a>
+            </td>
+          </tr>`;
+    }).join('')}
+
+    ${commandes.length > 0 ? `
+        </tbody>
+      </table>
+    </div>` : ''}
+  </div>
+</div>
+`;
+%>
+<%- include('../layout', { body: content }) %>

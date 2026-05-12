@@ -1,0 +1,95 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Gestionnaire</h1>
+    <p class="text-gray-600 mt-1">Vue d'ensemble des opérations</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-clock text-blue-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= kpis.commandes_en_attente %></h3>
+      <p class="text-sm text-gray-600">En attente</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-check-circle text-green-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= kpis.commandes_approuvees %></h3>
+      <p class="text-sm text-gray-600">Approuvées</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-boxes text-emerald-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= kpis.stock_total %></h3>
+      <p class="text-sm text-gray-600">Stock total</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= kpis.alertes_actives %></h3>
+      <p class="text-sm text-gray-600">Alertes</p>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a href="/commandes" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+          <i class="fas fa-clipboard-list text-blue-600"></i>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900">Gérer les commandes</h3>
+          <p class="text-sm text-gray-600">Voir et traiter</p>
+        </div>
+      </a>
+      
+      <a href="/commandes/create" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+          <i class="fas fa-plus text-green-600"></i>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900">Nouvelle commande</h3>
+          <p class="text-sm text-gray-600">Créer une commande</p>
+        </div>
+      </a>
+      
+      <a href="/matieres/create" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+          <i class="fas fa-barcode text-purple-600"></i>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900">Créer matière première</h3>
+          <p class="text-sm text-gray-600">Ajouter un produit</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Alerts Summary -->
+  <% if (alertes.length > 0) { %>
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Alertes actives</h2>
+    <div class="p-4 border border-red-200 rounded-lg bg-red-50">
+      <div class="flex items-center mb-2">
+        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-2">
+          <i class="fas fa-bell text-red-600 text-sm"></i>
+        </div>
+        <h3 class="font-medium text-red-800">Alertes prédictives</h3>
+      </div>
+      <p class="text-red-700"><%= alertes.length %> alerte(s) à traiter</p>
+      <a href="/gestionnaire/alertes" class="text-red-600 hover:text-red-800 text-sm mt-2 inline-block">Voir les détails →</a>
+    </div>
+  </div>
+  <% } %>
+</div>

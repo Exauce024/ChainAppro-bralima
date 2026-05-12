@@ -1,0 +1,145 @@
+<%
+var content = `
+<div class="space-y-8">
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-3xl font-bold text-slate-800">Tableau de bord Magasinier</h2>
+    <p class="text-slate-500 mt-1">Gestion des stocks et réceptions</p>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="/magasinier/reception" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300 flex items-center space-x-4">
+      <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+        <i class="fas fa-truck-loading text-3xl"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold">Nouvelle réception</h3>
+        <p class="text-blue-100 text-sm mt-1">Enregistrer une livraison</p>
+      </div>
+    </a>
+    
+    <a href="/magasinier/scan" class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300 flex items-center space-x-4">
+      <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+        <i class="fas fa-barcode text-3xl"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold">Mode Scan Mobile</h3>
+        <p class="text-emerald-100 text-sm mt-1">Scanner les codes-barres</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Stock Status Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-warehouse text-purple-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">État des stocks</h3>
+          <p class="text-sm text-slate-500">Inventaire actuel par entrepôt</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Matière</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Quantité disponible</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Entrepôt</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Dernière MAJ</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Statut</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          ${stocks.map(stock => {
+            var stockStatus = 'normal';
+            var statusColor = 'text-emerald-800';
+            var statusBg = 'bg-emerald-100';
+            
+            if (stock.qtedisponible <= stock.seuilcritique) {
+              stockStatus = 'critique';
+              statusColor = 'text-red-800';
+              statusBg = 'bg-red-100';
+            } else if (stock.qtedisponible <= stock.seuilalerte) {
+              stockStatus = 'alerte';
+              statusColor = 'text-amber-800';
+              statusBg = 'bg-amber-100';
+            }
+            
+            return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4 font-medium text-slate-800">${stock.matiere}</td>
+            <td class="px-6 py-4">
+              <span class="text-lg font-bold ${stockStatus === 'critique' ? 'text-red-600' : stockStatus === 'alerte' ? 'text-amber-600' : 'text-slate-800'}">${stock.qtedisponible}</span>
+            </td>
+            <td class="px-6 py-4 text-slate-600">${stock.entrepot_nom || stock.entrepot_dispo || 'N/A'}</td>
+            <td class="px-6 py-4 text-slate-600 text-sm">${stock.datemaj}</td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusBg} ${statusColor}">
+                <span class="w-2 h-2 rounded-full ${statusBg.replace('100', '500')} mr-2"></span>
+                ${stockStatus.charAt(0).toUpperCase() + stockStatus.slice(1)}
+              </span>
+            </td>
+          </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    
+    ${stocks.length === 0 ? `
+    <div class="p-12 text-center">
+      <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-boxes text-slate-400 text-2xl"></i>
+      </div>
+      <p class="text-slate-500">Aucun stock disponible</p>
+    </div>
+    ` : ''}
+  </div>
+
+  <!-- Stats Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center space-x-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-boxes text-blue-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Total articles</p>
+          <p class="text-2xl font-bold text-slate-800">${stocks.length}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center space-x-4">
+        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Stocks normaux</p>
+          <p class="text-2xl font-bold text-slate-800">${stocks.filter(s => s.qtedisponible > (s.seuilalerte || 0)).length}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center space-x-4">
+        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Stocks critiques</p>
+          <p class="text-2xl font-bold text-slate-800">${stocks.filter(s => s.qtedisponible <= (s.seuilcritique || 0)).length}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+%>
+<%- include('../layout', { body: content }) %>

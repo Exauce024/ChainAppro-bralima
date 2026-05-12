@@ -1,0 +1,192 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Détails du Stock</h1>
+        <p class="text-gray-600 mt-1">Informations détaillées pour <%= stock.libellé %></p>
+      </div>
+      <a href="/gestionnaire/stocks" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+      </a>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Stock Information Card -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Informations du Stock</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left Column -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Matière première</label>
+            <p class="text-lg font-semibold text-gray-900"><%= stock.libellé %></p>
+            <p class="text-sm text-gray-500"><%= stock.description || 'Aucune description' %></p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Quantité disponible</label>
+            <p class="text-2xl font-bold text-blue-600"><%= stock.qtedisponible || 0 %></p>
+            <p class="text-sm text-gray-500">Unités</p>
+          </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Seuil d'alerte</label>
+            <p class="text-lg font-semibold text-amber-600"><%= stock.seuilalerte || 'Non défini' %></p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Seuil critique</label>
+            <p class="text-lg font-semibold text-red-600"><%= stock.seuilcritique || 'Non défini' %></p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Status Badge -->
+      <div class="mt-6 pt-6 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-700">Statut actuel:</span>
+          <% if (stock.qtedisponible <= stock.seuilcritique) { %>
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+              <i class="fas fa-exclamation-triangle mr-1"></i>Critique
+            </span>
+          <% } else if (stock.qtedisponible <= stock.seuilalerte) { %>
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+              <i class="fas fa-exclamation-triangle mr-1"></i>Alerte
+            </span>
+          <% } else { %>
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+              <i class="fas fa-check-circle mr-1"></i>Normal
+            </span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Status Visualization -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">État du Stock</h2>
+    </div>
+    <div class="p-6">
+      <div class="space-y-4">
+        <!-- Progress Bar -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-medium text-gray-700">Niveau de stock</span>
+            <span class="text-sm text-gray-500"><%= stock.qtedisponible || 0 %> unités</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4">
+            <% 
+              const maxStock = Math.max(stock.qtedisponible || 0, stock.seuilalerte || 1, stock.seuilcritique || 1) * 1.5;
+              const currentPercentage = ((stock.qtedisponible || 0) / maxStock) * 100;
+              const alertePercentage = ((stock.seuilalerte || 0) / maxStock) * 100;
+              const critiquePercentage = ((stock.seuilcritique || 0) / maxStock) * 100;
+            %>
+            <div class="relative h-4 rounded-full overflow-hidden">
+              <!-- Background -->
+              <div class="absolute inset-0 bg-gray-200"></div>
+              <!-- Critique zone -->
+              <div class="absolute left-0 top-0 h-full bg-red-500" style="width: <%= critiquePercentage %>%"></div>
+              <!-- Alerte zone -->
+              <div class="absolute left-0 top-0 h-full bg-amber-500" style="width: <%= alertePercentage %>%"></div>
+              <!-- Current stock -->
+              <div class="absolute left-0 top-0 h-full bg-blue-500" style="width: <%= currentPercentage %>%"></div>
+            </div>
+          </div>
+          <div class="flex justify-between mt-2 text-xs text-gray-500">
+            <span>0</span>
+            <span>Critique: <%= stock.seuilcritique || 0 %></span>
+            <span>Alerte: <%= stock.seuilalerte || 0 %></span>
+            <span>Maximum: <%= Math.round(maxStock) %></span>
+          </div>
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 class="text-sm font-semibold text-blue-800 mb-2">
+            <i class="fas fa-info-circle mr-1"></i>Recommandations
+          </h3>
+          <% if (stock.qtedisponible <= stock.seuilcritique) { %>
+            <p class="text-sm text-blue-700">⚠️ Stock critique! Commande urgente requise immédiatement.</p>
+          <% } else if (stock.qtedisponible <= stock.seuilalerte) { %>
+            <p class="text-sm text-blue-700">📋 Stock faible. Planifiez une commande bientôt.</p>
+          <% } else { %>
+            <p class="text-sm text-blue-700">✅ Stock normal. Continuez la surveillance régulière.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Actions Rapides</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="/commandes/create?matiere=<%= stock.idmp %>" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+            <i class="fas fa-plus text-blue-600"></i>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-900">Créer une commande</h3>
+            <p class="text-sm text-gray-600">Commander cette matière</p>
+          </div>
+        </a>
+        
+        <a href="/gestionnaire/stocks" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+            <i class="fas fa-list text-purple-600"></i>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-900">Voir tous les stocks</h3>
+            <p class="text-sm text-gray-600">Retour à la liste</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Section (Empty for now) -->
+  <% if (mouvements && mouvements.length > 0) { %>
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Historique des Mouvements</h2>
+    </div>
+    <div class="p-6">
+      <div class="text-center py-8">
+        <i class="fas fa-history text-gray-400 text-4xl mb-4"></i>
+        <p class="text-gray-500">Aucun mouvement enregistré</p>
+      </div>
+    </div>
+  </div>
+  <% } %>
+</div>

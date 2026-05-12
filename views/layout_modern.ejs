@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'BRALIMA Supply Chain' %></title>
+  <link rel="icon" type="image/png" href="/images/Capture d'écran 2026-04-22 142823.png">
+  <link rel="stylesheet" href="/css/output.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            'primary': '#1e3a8a', // Bleu nuit
+            'primary-dark': '#1e293b',
+            'success': '#10b981', // Vert
+            'warning': '#f59e0b', // Jaune/Orange
+            'info': '#3b82f6', // Bleu clair
+            'danger': '#ef4444', // Rouge
+            'gray-light': '#f8fafc', // Gris très clair
+            'gray-medium': '#e2e8f0',
+            'gray-dark': '#475569',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      background-color: #f8fafc;
+    }
+    
+    .sidebar-item {
+      transition: all 0.2s ease;
+      margin-bottom: 0.5rem;
+    }
+    
+    .sidebar-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-item.active {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-left: 3px solid white;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .kpi-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .kpi-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+    
+    .kpi-label {
+      font-size: 0.875rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+    
+    .trend-up {
+      color: #10b981;
+    }
+    
+    .trend-down {
+      color: #ef4444;
+    }
+    
+    .badge-success {
+      background-color: #10b981;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .badge-warning {
+      background-color: #f59e0b;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .badge-danger {
+      background-color: #ef4444;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .badge-info {
+      background-color: #3b82f6;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="bg-gray-light">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-primary text-white flex flex-col">
+      <!-- Logo -->
+      <div class="p-6 border-b border-white/10">
+        <div class="flex items-center">
+          <img src="/images/Capture d'écran 2026-04-22 142823.png" alt="BRALIMA Logo" class="w-10 h-10 rounded-lg mr-3">
+          <div>
+            <h1 class="text-xl font-bold">BRALIMA</h1>
+            <p class="text-xs text-white/70">Supply Chain</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Navigation -->
+      <nav class="flex-1 p-4">
+        <ul class="space-y-2">
+          <% if (user && user.role_libelle === 'admin') { %>
+            <li>
+              <a href="/admin/dashboard" class="sidebar-item flex items-center p-3 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                <span>Dashboard Admin</span>
+              </a>
+            </li>
+            <li>
+              <a href="/admin/users" class="sidebar-item flex items-center p-3 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-users w-5 mr-3"></i>
+                <span>Utilisateurs</span>
+              </a>
+            </li>
+            <li>
+              <a href="/admin/fournisseurs" class="sidebar-item flex items-center p-3 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-truck w-5 mr-3"></i>
+                <span>Fournisseurs</span>
+              </a>
+            </li>
+            <li>
+              <a href="/admin/logs" class="sidebar-item flex items-center p-3 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-history w-5 mr-3"></i>
+                <span>Logs Audit</span>
+              </a>
+            </li>
+          <% } else if (user && user.role_libelle === 'gestionnaire') { %>
+            <li>
+              <a href="/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/commandes" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-clipboard-list w-5 mr-3"></i>
+                <span>Commandes</span>
+              </a>
+            </li>
+            <li>
+              <a href="/gestionnaire/stocks" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-boxes w-5 mr-3"></i>
+                <span>Stocks</span>
+              </a>
+            </li>
+            <li>
+              <a href="/gestionnaire/alertes" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-bell w-5 mr-3"></i>
+                <span>Alertes</span>
+              </a>
+            </li>
+          <% } else if (user && user.role_libelle === 'magasinier') { %>
+            <li>
+              <a href="/magasinier/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/magasinier/reception" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-truck-loading w-5 mr-3"></i>
+                <span>Réception</span>
+              </a>
+            </li>
+            <li>
+              <a href="/magasinier/scan" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-barcode w-5 mr-3"></i>
+                <span>Scan</span>
+              </a>
+            </li>
+            <li>
+              <a href="/magasinier/stocks" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-warehouse w-5 mr-3"></i>
+                <span>Stocks</span>
+              </a>
+            </li>
+          <% } else if (user && user.role_libelle === 'fournisseur') { %>
+            <li>
+              <a href="/fournisseur/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/fournisseur/commandes" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-clipboard-list w-5 mr-3"></i>
+                <span>Mes Commandes</span>
+              </a>
+            </li>
+          <% } %>
+        </ul>
+      </nav>
+      
+          </aside>
+    
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <!-- Header -->
+      <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="px-6 py-4 flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-800"><%= title || 'Tableau de bord' %></h2>
+            <p class="text-sm text-gray-500">Bienvenue sur votre espace de travail</p>
+          </div>
+          
+          <!-- Profile Section -->
+          <div class="flex items-center space-x-4">
+            <!-- Notifications -->
+            <button class="relative p-2 text-gray-600 hover:text-gray-800 transition-colors">
+              <i class="fas fa-bell text-lg"></i>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            
+            <!-- Profile Menu -->
+            <div class="flex items-center space-x-3">
+              <div class="text-right">
+                <p class="text-sm font-medium text-gray-800">
+                  <%= user ? (user.prenom && user.nom ? user.prenom + ' ' + user.nom : user.nom || 'Utilisateur') : 'Invité' %>
+                </p>
+                <p class="text-xs text-gray-500">
+                  <%= user ? (user.role_libelle || 'Utilisateur') : 'Non connecté' %>
+                </p>
+              </div>
+              <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-medium">
+                <%= user ? (user.prenom && user.nom ? (user.prenom.charAt(0) + user.nom.charAt(0)).toUpperCase() : user.nom ? user.nom.charAt(0).toUpperCase() : 'U') : 'I' %>
+              </div>
+              <div class="relative">
+                <button id="profileMenuButton" class="p-2 text-gray-600 hover:text-gray-800 transition-colors">
+                  <i class="fas fa-chevron-down text-sm"></i>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div id="profileMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden z-50">
+                  <div class="py-1">
+                    <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                      <i class="fas fa-user mr-2"></i>Mon profil
+                    </a>
+                    <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                      <i class="fas fa-cog mr-2"></i>Paramètres
+                    </a>
+                    <hr class="my-1 border-gray-200">
+                    <form method="POST" action="/logout" class="block">
+                      <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <div class="p-6">
+        <!-- Flash Messages -->
+        <% if (success && success.length > 0) { %>
+          <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="flex items-center">
+              <i class="fas fa-check-circle text-green-500 mr-2"></i>
+              <span class="text-green-700"><%= success %></span>
+            </div>
+          </div>
+        <% } %>
+        
+        <% if (error && error.length > 0) { %>
+          <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center">
+              <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+              <span class="text-red-700"><%= error %></span>
+            </div>
+          </div>
+        <% } %>
+        
+        <!-- Page Content -->
+        <% if (typeof title !== 'undefined' && title === 'Administration Système') { %>
+          <%- include('admin/dashboard_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Gestion des Utilisateurs') { %>
+          <%- include('admin/users') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Gestion des Fournisseurs') { %>
+          <%- include('admin/fournisseurs') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Logs d\'Audit') { %>
+          <%- include('admin/logs') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Créer un utilisateur') { %>
+          <%- include('admin/create-user') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Créer un fournisseur') { %>
+          <%- include('admin/create-fournisseur') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Modifier un utilisateur') { %>
+          <%- include('admin/edit_user_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Tableau de bord - Magasinier') { %>
+          <%- include('magasinier/dashboard_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Nouvelle Réception') { %>
+          <%- include('magasinier/reception_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Mode Scan Mobile') { %>
+          <%- include('magasinier/scan_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Créer une Matière Première') { %>
+          <%- include('gestionnaire/create_matiere_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Portail Fournisseur') { %>
+          <%- include('fournisseur/dashboard_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Détails de la Commande') { %>
+          <%- include('fournisseur/commande-detail_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Tableau de bord - Gestionnaire') { %>
+          <%- include('dashboard/gestionnaire_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Gestion des Stocks') { %>
+          <%- include('gestionnaire/stocks_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Détails du Stock') { %>
+          <%- include('gestionnaire/stock_details_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Commandes') { %>
+          <%- include('commande/commandes_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Créer une nouvelle commande') { %>
+          <%- include('commande/create_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Créer une Matière Première') { %>
+          <%- include('gestionnaire/create_matiere_content') %>
+        <% } else if (typeof title !== 'undefined' && title.startsWith('Détails du Stock')) { %>
+          <%- include('gestionnaire/stock_details_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Gestion des Alertes') { %>
+          <%- include('gestionnaire/alertes_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Paramètres') { %>
+          <%- include('settings_content') %>
+        <% } else if (typeof title !== 'undefined' && title.startsWith('Commande n°')) { %>
+          <%- include('commande/commande_details_content') %>
+        <% } %>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // Set active menu item
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      const menuItems = document.querySelectorAll('.sidebar-item');
+      
+      menuItems.forEach(item => {
+        const link = item.querySelector('a');
+        if (link && link.getAttribute('href') === currentPath) {
+          item.classList.add('bg-blue-50', 'text-blue-600', 'border-l-4', 'border-blue-600');
+        }
+      });
+    });
+
+    // Profile dropdown menu
+    document.addEventListener('DOMContentLoaded', function() {
+      const profileMenuButton = document.getElementById('profileMenuButton');
+      const profileMenu = document.getElementById('profileMenu');
+      
+      if (profileMenuButton && profileMenu) {
+        // Toggle menu when clicking the button
+        profileMenuButton.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          profileMenu.classList.toggle('hidden');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!profileMenu.contains(e.target) && e.target !== profileMenuButton) {
+            profileMenu.classList.add('hidden');
+          }
+        });
+        
+        // Prevent menu from closing when clicking inside (but allow forms to submit)
+        profileMenu.addEventListener('click', function(e) {
+          // Allow form submissions to work normally
+          if (e.target.tagName === 'FORM' || e.target.tagName === 'BUTTON' || e.target.closest('form')) {
+            return; // Don't stop propagation for form elements
+          }
+          e.stopPropagation();
+        });
+      }
+    });
+  </script>
+</body>
+</html>

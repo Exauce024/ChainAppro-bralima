@@ -1,0 +1,244 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Nouvelle Réception</h1>
+    <p class="text-gray-600 mt-1">Enregistrer une livraison de marchandise</p>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Reception Form -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+      <form method="POST" action="/magasinier/reception" class="space-y-6">
+        <!-- Supplier Information -->
+        <div class="border-b border-gray-200 pb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Informations fournisseur</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
+              <select name="fournisseur_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Sélectionner un fournisseur</option>
+                <option value="1">Fournisseur A</option>
+                <option value="2">Fournisseur B</option>
+                <option value="3">Fournisseur C</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Numéro de bon de livraison</label>
+              <input type="text" name="bon_livraison" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Date de réception</label>
+              <input type="date" name="date_reception" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Chauffeur</label>
+              <input type="text" name="chauffeur" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="border-b border-gray-200 pb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Produits reçus</h3>
+            <button type="button" onclick="addProductRow()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+              <i class="fas fa-plus mr-2"></i>Ajouter un produit
+            </button>
+          </div>
+          
+          <div id="products-container" class="space-y-4">
+            <!-- Product rows will be added here dynamically -->
+            <div class="product-row bg-gray-50 p-4 rounded-lg">
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Code produit</label>
+                  <input type="text" name="product_code[]" placeholder="Scanner ou saisir" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Nom produit</label>
+                  <input type="text" name="product_name[]" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
+                  <input type="number" name="quantity[]" min="1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Unité</label>
+                  <select name="unit[]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="unités">Unités</option>
+                    <option value="kg">Kg</option>
+                    <option value="litres">Litres</option>
+                    <option value="cartons">Cartons</option>
+                  </select>
+                </div>
+                <div class="flex items-end">
+                  <button type="button" onclick="removeProductRow(this)" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quality Control -->
+        <div class="border-b border-gray-200 pb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Contrôle qualité</h3>
+          <div class="space-y-4">
+            <div class="flex items-center space-x-4">
+              <label class="flex items-center">
+                <input type="radio" name="quality_status" value="conforme" checked class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Conforme</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="quality_status" value="non_conforme" class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Non conforme</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="quality_status" value="partiel" class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Partiellement conforme</span>
+              </label>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Observations</label>
+              <textarea name="observations" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Storage Location -->
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Emplacement de stockage</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Entrepôt</label>
+              <select name="warehouse_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Sélectionner un entrepôt</option>
+                <option value="1">Entrepôt Principal</option>
+                <option value="2">Entrepôt Secondaire</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Zone</label>
+              <input type="text" name="zone" placeholder="Ex: A-12, B-05" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-between items-center pt-6">
+          <a href="/magasinier/dashboard" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Retour
+          </a>
+          <div class="space-x-4">
+            <button type="reset" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+              <i class="fas fa-undo mr-2"></i>Réinitialiser
+            </button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <i class="fas fa-save mr-2"></i>Enregistrer la réception
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+let productRowCount = 1;
+
+function addProductRow() {
+  productRowCount++;
+  const container = document.getElementById('products-container');
+  const newRow = document.createElement('div');
+  newRow.className = 'product-row bg-gray-50 p-4 rounded-lg';
+  newRow.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Code produit</label>
+        <input type="text" name="product_code[]" placeholder="Scanner ou saisir" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Nom produit</label>
+        <input type="text" name="product_name[]" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
+        <input type="number" name="quantity[]" min="1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Unité</label>
+        <select name="unit[]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="unités">Unités</option>
+          <option value="kg">Kg</option>
+          <option value="litres">Litres</option>
+          <option value="cartons">Cartons</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button type="button" onclick="removeProductRow(this)" class="text-red-600 hover:text-red-800">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  `;
+  container.appendChild(newRow);
+}
+
+function removeProductRow(button) {
+  const rows = document.querySelectorAll('.product-row');
+  if (rows.length > 1) {
+    button.closest('.product-row').remove();
+  } else {
+    alert('Au moins un produit est requis');
+  }
+}
+
+// Product code search simulation
+document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('input', function(e) {
+    if (e.target.name === 'product_code[]') {
+      const code = e.target.value;
+      const nameInput = e.target.closest('.product-row').querySelector('input[name="product_name[]"]');
+      
+      // Simulate product lookup
+      if (code.length >= 3) {
+        // In real app, this would be an AJAX call to the server
+        const products = {
+          'PROD001': 'Carte SIM Standard',
+          'PROD002': 'Carte SIM Data',
+          'PROD003': 'Rechargeur USB',
+          'PROD004': 'Câble USB-C',
+        };
+        
+        if (products[code]) {
+          nameInput.value = products[code];
+        } else {
+          nameInput.value = 'Produit inconnu';
+        }
+      } else {
+        nameInput.value = '';
+      }
+    }
+  });
+});
+</script>

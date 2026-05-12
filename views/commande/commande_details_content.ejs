@@ -1,0 +1,207 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Commande n°<%= commande.idcommande %></h1>
+        <p class="text-gray-600 mt-1"><%= commande.raisonsocial || 'Fournisseur non spécifié' %></p>
+      </div>
+      <a href="/commandes" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+      </a>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Order Info Card -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Informations générales</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Référence</label>
+            <p class="text-lg font-semibold text-gray-900"><%= commande.reference || 'N/A' %></p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <% if (commande.statut === 'en_attente') { %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                <i class="fas fa-clock mr-1"></i>En attente
+              </span>
+            <% } else if (commande.statut === 'approuvee') { %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                <i class="fas fa-eye mr-1"></i>Approuvée
+              </span>
+            <% } else if (commande.statut === 'en_cours') { %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                <i class="fas fa-check-circle mr-1"></i>En cours
+              </span>
+            <% } else if (commande.statut === 'livree') { %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                <i class="fas fa-check-double mr-1"></i>Livrée
+              </span>
+            <% } else if (commande.statut === 'refusee') { %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                <i class="fas fa-times-circle mr-1"></i>Refusée
+              </span>
+            <% } else { %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                <%= commande.statut || 'Non défini' %>
+              </span>
+            <% } %>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date de création</label>
+            <p class="text-lg font-semibold text-gray-900">
+              <%= commande.datecreation ? new Date(commande.datecreation).toLocaleDateString('fr-FR') : 'N/A' %>
+            </p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date de livraison</label>
+            <p class="text-lg font-semibold text-gray-900">
+              <%= commande.deleidellivraison ? new Date(commande.deleidellivraison).toLocaleDateString('fr-FR') : 'Non définie' %>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <% if (commande.details_lignes) { %>
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Détails des lignes</h3>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <pre class="text-sm text-gray-800 whitespace-pre-wrap"><%= commande.details_lignes %></pre>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Status Change Form -->
+  <% if (commande.statut === 'en_attente' || commande.statut === 'approuvee') { %>
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Changer le statut</h2>
+    </div>
+    <div class="p-6">
+      <form method="POST" action="/commandes/<%= commande.idcommande %>/statut" class="space-y-4">
+        <div>
+          <label for="statut" class="block text-sm font-medium text-gray-700 mb-1">Nouveau statut</label>
+          <select name="statut" id="statut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <% if (commande.statut === 'en_attente') { %>
+              <option value="approuvee">Approuvée</option>
+            <% } %>
+            <% if (commande.statut === 'approuvee') { %>
+              <option value="en_cours">En cours</option>
+            <% } %>
+            <option value="refusee">Refusée</option>
+            <option value="livree">Livrée</option>
+          </select>
+        </div>
+        
+        <div>
+          <label for="motifrefus" class="block text-sm font-medium text-gray-700 mb-1">Motif du refus (si refus)</label>
+          <input type="text" name="motifrefus" id="motifrefus" 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="Expliquez le motif du refus">
+        </div>
+        
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <i class="fas fa-check mr-2"></i>Changer le statut
+        </button>
+      </form>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Actions -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Actions</h2>
+    </div>
+    <div class="p-6">
+      <div class="flex flex-wrap gap-4">
+        <% if (commande.statut === 'en_attente' || commande.statut === 'approuvee') { %>
+          <button id="relancerBtn" class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors">
+            <i class="fas fa-envelope mr-2"></i>Relancer le fournisseur
+          </button>
+        <% } %>
+        
+        <a href="/commandes" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+        </a>
+        
+        <button onclick="window.print()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+          <i class="fas fa-print mr-2"></i>Imprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Relancer fonction
+document.getElementById('relancerBtn')?.addEventListener('click', async function() {
+  try {
+    const response = await fetch('/commandes/<%= commande.idcommande %>/relancer', { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Afficher un message de succès
+      const successDiv = document.createElement('div');
+      successDiv.className = 'p-4 bg-green-50 border border-green-200 rounded-lg mb-4';
+      successDiv.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-check-circle text-green-500 mr-2"></i>
+          <span class="text-green-700">${data.message}</span>
+        </div>
+      `;
+      
+      // Insérer au début de la page
+      const container = document.querySelector('.space-y-6');
+      container.insertBefore(successDiv, container.firstChild);
+      
+      // Supprimer après 5 secondes
+      setTimeout(() => {
+        successDiv.remove();
+      }, 5000);
+    } else {
+      alert('Erreur lors de la relance: ' + (data.message || 'Erreur inconnue'));
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la relance');
+  }
+});
+</script>

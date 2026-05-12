@@ -1,0 +1,152 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Tableau de bord Magasinier</h1>
+    <p class="text-gray-600 mt-1">Gestion des stocks et réceptions</p>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="/magasinier/reception" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-4">
+      <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+        <i class="fas fa-truck-loading text-3xl"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold">Nouvelle réception</h3>
+        <p class="text-blue-100 text-sm mt-1">Enregistrer une livraison</p>
+      </div>
+    </a>
+    
+    <a href="/magasinier/scan" class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-4">
+      <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+        <i class="fas fa-barcode text-3xl"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold">Mode Scan Mobile</h3>
+        <p class="text-emerald-100 text-sm mt-1">Scanner les codes-barres</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Stock Status Card -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-warehouse text-purple-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">État des stocks</h3>
+          <p class="text-sm text-gray-500">Inventaire actuel par entrepôt</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrepôt</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produits</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Total</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alertes</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière MàJ</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Entrepôt Principal</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">245</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12,450 unités</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">3 alertes</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Il y a 2h</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Entrepôt Secondaire</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">189</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8,230 unités</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">OK</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Il y a 1h</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Activities -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-history text-blue-600"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Activités récentes</h3>
+            <p class="text-sm text-gray-500">Dernières opérations de stock</p>
+          </div>
+        </div>
+        <a href="/magasinier/logs" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Voir tout</a>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <div class="space-y-4">
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-plus text-green-600 text-xs"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Réception de marchandise</p>
+            <p class="text-xs text-gray-500">50 unités de PROD-001 reçues</p>
+          </div>
+          <span class="text-xs text-gray-400">Il y a 30min</span>
+        </div>
+        
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-barcode text-blue-600 text-xs"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Scan de stock</p>
+            <p class="text-xs text-gray-500">Inventaire zone A-12 complété</p>
+          </div>
+          <span class="text-xs text-gray-400">Il y a 2h</span>
+        </div>
+        
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-exclamation text-yellow-600 text-xs"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Alerte de stock</p>
+            <p class="text-xs text-gray-500">PROD-045 en dessous du seuil minimum</p>
+          </div>
+          <span class="text-xs text-gray-400">Il y a 3h</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Simulate real-time updates
+  setInterval(function() {
+    // Update stock counts randomly
+    const stockElements = document.querySelectorAll('.text-gray-900');
+    stockElements.forEach(function(element) {
+      if (element.textContent.includes('unités')) {
+        const current = parseInt(element.textContent.replace(/[^\d]/g, ''));
+        const change = Math.floor(Math.random() * 20) - 10;
+        const newValue = Math.max(0, current + change);
+        element.textContent = newValue.toLocaleString() + ' unités';
+      }
+    });
+  }, 30000); // Update every 30 seconds
+});
+</script>

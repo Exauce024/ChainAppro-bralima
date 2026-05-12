@@ -1,0 +1,466 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Gestion des Alertes</h1>
+    <p class="text-gray-600 mt-1">Consultez et traitez les alertes actives du système</p>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (success && success.length > 0) { %>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+        <span class="text-green-700"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (error && error.length > 0) { %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+        <span class="text-red-700"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-bell text-blue-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= stats.totalAlertes || 0 %></h3>
+      <p class="text-sm text-gray-600">Total alertes</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= stats.alertesHaute || 0 %></h3>
+      <p class="text-sm text-gray-600">Haute urgence</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-exclamation text-amber-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= stats.alertesMoyenne || 0 %></h3>
+      <p class="text-sm text-gray-600">Urgence moyenne</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-info-circle text-blue-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= stats.alertesBasse || 0 %></h3>
+      <p class="text-sm text-gray-600">Basse urgence</p>
+    </div>
+  </div>
+
+  <!-- Filter and Search -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex-1">
+        <div class="relative">
+          <input type="text" id="alerteSearch" placeholder="Rechercher une alerte..." 
+                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+      </div>
+      
+      <div class="flex gap-2">
+        <select id="filterUrgency" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Toutes les urgences</option>
+          <option value="haute">Haute</option>
+          <option value="moyenne">Moyenne</option>
+          <option value="basse">Basse</option>
+        </select>
+        
+        <select id="filterType" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Tous les types</option>
+          <option value="seuil_critique">Seuil critique</option>
+          <option value="stock_faible">Stock faible</option>
+          <option value="autre">Autre</option>
+        </select>
+        
+        <button onclick="refreshAlertes()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <i class="fas fa-sync-alt mr-2"></i>Actualiser
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes Table -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Liste des Alertes Actives</h2>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urgence</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" id="alertesTableBody">
+          <% alertes.forEach(function(alerte, index) { %>
+            <tr class="hover:bg-gray-50 alerte-row" 
+                data-urgency="<%= alerte.niveauurgence %>" 
+                data-type="<%= alerte.typealerte || 'autre' %>"
+                data-id="<%= alerte.idalert %>">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                <%= index + 1 %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-box text-blue-600"></i>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900"><%= alerte.matiere %></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                  <%= alerte.typealerte === 'seuil_critique' ? 'bg-red-100 text-red-800' : 
+                     alerte.typealerte === 'stock_faible' ? 'bg-amber-100 text-amber-800' : 
+                     'bg-gray-100 text-gray-800' %>">
+                  <%= alerte.typealerte || 'Autre' %>
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900"><%= alerte.message %></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                  <%= alerte.niveauurgence === 'haute' ? 'bg-red-100 text-red-800' : 
+                     alerte.niveauurgence === 'moyenne' ? 'bg-amber-100 text-amber-800' : 
+                     'bg-blue-100 text-blue-800' %>">
+                  <i class="fas fa-exclamation-triangle mr-1"></i>
+                  <%= alerte.niveauurgence || 'Non défini' %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= new Date(alerte.datecreation).toLocaleDateString('fr-FR') %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <a href="/gestionnaire/stocks" class="text-blue-600 hover:text-blue-900" title="Voir les stocks">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <form method="POST" action="/gestionnaire/alertes/<%= alerte.idalert %>/traiter" class="inline">
+                    <button type="submit" class="text-green-600 hover:text-green-900" title="Traiter l'alerte">
+                      <i class="fas fa-check"></i>
+                    </button>
+                  </form>
+                  <form method="POST" action="/gestionnaire/alertes/<%= alerte.idalert %>/ignorer" class="inline">
+                    <button type="submit" class="text-gray-600 hover:text-gray-900" title="Ignorer l'alerte">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    
+    <% if (alertes.length === 0) { %>
+      <div class="text-center py-8">
+        <i class="fas fa-check-circle text-emerald-500 text-4xl mb-4"></i>
+        <p class="text-gray-500">Aucune alerte active pour le moment.</p>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Actions Rapides</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a href="/gestionnaire/stocks" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+          <i class="fas fa-boxes text-blue-600"></i>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900">Voir les stocks</h3>
+          <p class="text-sm text-gray-600">Consulter l'état des stocks</p>
+        </div>
+      </a>
+      
+      <a href="/dashboard" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+          <i class="fas fa-tachometer-alt text-purple-600"></i>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900">Dashboard</h3>
+          <p class="text-sm text-gray-600">Vue d'ensemble</p>
+        </div>
+      </a>
+      
+      <button onclick="refreshAlertes()" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+          <i class="fas fa-sync-alt text-green-600"></i>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900">Actualiser</h3>
+          <p class="text-sm text-gray-600">Recharger les alertes</p>
+        </div>
+      </button>
+    </div>
+  </div>
+    
+    <!-- Pagination -->
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Précédent</a>
+        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Suivant</a>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Affichage de <span class="font-medium">1</span> à <span class="font-medium"><%= alertes.length %></span> sur <span class="font-medium"><%= allAlertes.length %></span> alertes
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">1</a>
+            <% if (allAlertes.length > 10) { %>
+              <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">2</a>
+            <% } %>
+            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('alerteSearch').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll('#alertesTableBody tr');
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  });
+});
+
+// Filter by urgency
+document.getElementById('filterUrgency').addEventListener('change', function(e) {
+  const filterValue = e.target.value;
+  const rows = document.querySelectorAll('.alerte-row');
+  
+  rows.forEach(row => {
+    if (!filterValue) {
+      row.style.display = '';
+    } else {
+      row.style.display = row.dataset.urgency === filterValue ? '' : 'none';
+    }
+  });
+});
+
+// Filter by type
+document.getElementById('filterType').addEventListener('change', function(e) {
+  const filterValue = e.target.value;
+  const rows = document.querySelectorAll('.alerte-row');
+  
+  rows.forEach(row => {
+    if (!filterValue) {
+      row.style.display = '';
+    } else {
+      row.style.display = row.dataset.type === filterValue ? '' : 'none';
+    }
+  });
+});
+
+// Refresh alertes
+function refreshAlertes() {
+  window.location.reload();
+}
+
+// Selection functions
+function selectAllAlertes() {
+  const checkboxes = document.querySelectorAll('.alerte-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = true;
+  });
+  updateSelectAllCheckbox();
+}
+
+function deselectAllAlertes() {
+  const checkboxes = document.querySelectorAll('.alerte-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  updateSelectAllCheckbox();
+}
+
+function toggleAllCheckboxes() {
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  const checkboxes = document.querySelectorAll('.alerte-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = selectAllCheckbox.checked;
+  });
+}
+
+function updateSelectAllCheckbox() {
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  const checkboxes = document.querySelectorAll('.alerte-checkbox');
+  const checkedBoxes = document.querySelectorAll('.alerte-checkbox:checked');
+  
+  if (checkboxes.length === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+  } else if (checkedBoxes.length === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+  } else if (checkedBoxes.length === checkboxes.length) {
+    selectAllCheckbox.checked = true;
+    selectAllCheckbox.indeterminate = false;
+  } else {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = true;
+  }
+}
+
+// Get selected alertes IDs
+function getSelectedAlertesIds() {
+  const checkedBoxes = document.querySelectorAll('.alerte-checkbox:checked');
+  return Array.from(checkedBoxes).map(checkbox => checkbox.value);
+}
+
+// Mass actions - Version simplifiée avec formulaires cachés
+function treatSelectedAlertes() {
+  const selectedIds = getSelectedAlertesIds();
+  
+  console.log('Alertes sélectionnées pour traitement:', selectedIds);
+  
+  if (selectedIds.length === 0) {
+    showMessage('Veuillez sélectionner au moins une alerte à traiter', 'error');
+    return;
+  }
+  
+  if (!confirm(`Êtes-vous sûr de vouloir traiter ${selectedIds.length} alerte(s) ?`)) {
+    return;
+  }
+  
+  // Traiter les alertes une par une avec des formulaires
+  let processed = 0;
+  selectedIds.forEach(id => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/gestionnaire/alertes/${id}/traiter`;
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
+    processed++;
+  });
+  
+  console.log(`${processed} formulaires de traitement soumis`);
+}
+
+function ignoreSelectedAlertes() {
+  const selectedIds = getSelectedAlertesIds();
+  
+  console.log('Alertes sélectionnées pour ignorer:', selectedIds);
+  
+  if (selectedIds.length === 0) {
+    showMessage('Veuillez sélectionner au moins une alerte à ignorer', 'error');
+    return;
+  }
+  
+  if (!confirm(`Êtes-vous sûr de vouloir ignorer ${selectedIds.length} alerte(s) ?`)) {
+    return;
+  }
+  
+  // Ignorer les alertes une par une avec des formulaires
+  let processed = 0;
+  selectedIds.forEach(id => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/gestionnaire/alertes/${id}/ignorer`;
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
+    processed++;
+  });
+  
+  console.log(`${processed} formulaires d'ignorance soumis`);
+}
+
+// Show message function
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `p-4 mb-4 rounded-lg ${
+    type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 
+    'bg-red-50 border border-red-200 text-red-700'
+  }`;
+  messageDiv.innerHTML = `
+    <div class="flex items-center">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  const container = document.querySelector('.space-y-6');
+  container.insertBefore(messageDiv, container.firstChild);
+  
+  setTimeout(() => {
+    messageDiv.remove();
+  }, 5000);
+}
+
+// Test simple au chargement
+console.log('JavaScript chargé - Test alertes');
+
+// Update select all checkbox when individual checkboxes change
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM chargé - Initialisation des alertes');
+  
+  const checkboxes = document.querySelectorAll('.alerte-checkbox');
+  console.log('Cases à cocher trouvées:', checkboxes.length);
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectAllCheckbox);
+  });
+  
+  // Test des boutons
+  console.log('Test des fonctions de sélection...');
+  
+  // Ajouter un test simple pour vérifier si tout est bien chargé
+  window.testSelection = function() {
+    console.log('Test de sélection...');
+    const selectedIds = getSelectedAlertesIds();
+    console.log('IDs sélectionnés:', selectedIds);
+    return selectedIds;
+  };
+  
+  // Test direct
+  window.testDirect = function() {
+    alert('JavaScript fonctionne directement!');
+  };
+  
+  console.log('Fonctions de test créées');
+});
+
+// Test immédiat
+console.log('Test immédiat - JavaScript actif');
+</script>

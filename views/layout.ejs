@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'BRALIMA Supply Chain' %></title>
+  <link rel="icon" type="image/png" href="/images/Capture d'écran 2026-04-22 142823.png">
+  <link rel="stylesheet" href="/css/output.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .sidebar-link.active { background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%); }
+    .sidebar-link:hover { background: rgba(255,255,255,0.1); }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <% if (typeof user !== 'undefined') { %>
+  <%
+    const normalizedRole = String(user.role_libelle || '').toLowerCase();
+    const isAdmin = normalizedRole === 'admin' || normalizedRole === 'administrateur';
+    const isGestionnaire = normalizedRole === 'gestionnaire' || normalizedRole === 'gestionnaire supply chain';
+    const isMagasinier = normalizedRole === 'magasinier';
+    const isFournisseur = normalizedRole === 'fournisseur';
+  %>
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col shadow-xl">
+      <div class="p-6 border-b border-slate-700">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+            <i class="fas fa-boxes text-white text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold">BRALIMA</h1>
+            <p class="text-xs text-slate-400">Supply Chain</p>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+        <a href="<%= isAdmin ? '/admin/dashboard' : isFournisseur ? '/fournisseur/dashboard' : isMagasinier ? '/magasinier/dashboard' : '/dashboard' %>" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 <%= title === 'Dashboard' ? 'active' : '' %>">
+          <i class="fas fa-chart-line w-5"></i>
+          <span>Tableau de bord</span>
+        </a>
+        
+        <% if (isGestionnaire) { %>
+        <a href="/commandes" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 <%= title === 'Commandes' ? 'active' : '' %>">
+          <i class="fas fa-shopping-cart w-5"></i>
+          <span>Commandes</span>
+        </a>
+        <% } %>
+        
+        <% if (isMagasinier) { %>
+        <a href="/magasinier/dashboard" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 <%= title === 'Magasinier' ? 'active' : '' %>">
+          <i class="fas fa-warehouse w-5"></i>
+          <span>Stocks</span>
+        </a>
+        <a href="/magasinier/scan" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200">
+          <i class="fas fa-barcode w-5"></i>
+          <span>Scan Mobile</span>
+        </a>
+        <% } %>
+        
+        <% if (isFournisseur) { %>
+        <a href="/fournisseur/dashboard" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 <%= title === 'Fournisseur' ? 'active' : '' %>">
+          <i class="fas fa-truck w-5"></i>
+          <span>Mes Commandes</span>
+        </a>
+        <% } %>
+      </nav>
+      
+      <div class="p-4 border-t border-slate-700">
+        <div class="flex items-center space-x-3 mb-3">
+          <div class="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center">
+            <i class="fas fa-user text-slate-300"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium"><%= user.prenom %> <%= user.nom %></p>
+            <p class="text-xs text-slate-400"><%= user.role_libelle %></p>
+          </div>
+        </div>
+        <a href="/logout" class="flex items-center justify-center space-x-2 w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-lg transition-all duration-200">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Déconnexion</span>
+        </a>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="px-8 py-4 flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-800"><%= title || 'Tableau de bord' %></h2>
+            <p class="text-sm text-slate-500 mt-1">Bienvenue dans votre espace de gestion</p>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <i class="fas fa-bell text-slate-400 text-xl hover:text-slate-600 cursor-pointer transition-colors"></i>
+              <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </div>
+            <div class="w-px h-8 bg-slate-200"></div>
+            <div class="text-right">
+              <p class="text-sm font-medium text-slate-700"><%= new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <main class="flex-1 overflow-y-auto p-8">
+        <% if (success) { %>
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-6 py-4 rounded-xl mb-6 flex items-center space-x-3 animate-pulse">
+            <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
+            <span><%= success %></span>
+          </div>
+        <% } %>
+        <% if (error) { %>
+          <div class="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl mb-6 flex items-center space-x-3">
+            <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+            <span><%= error %></span>
+          </div>
+        <% } %>
+        <%- body %>
+      </main>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <%- body %>
+  </div>
+  <% } %>
+</body>
+</html>

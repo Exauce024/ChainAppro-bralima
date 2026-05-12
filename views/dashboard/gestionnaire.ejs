@@ -1,0 +1,194 @@
+<%
+var content = `
+<div class="space-y-8">
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-3xl font-bold text-slate-800">Tableau de bord - Gestionnaire Supply Chain</h2>
+    <p class="text-slate-500 mt-1">Surveillance des commandes, stocks et alertes prédictives</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-blue-100 text-sm font-medium">Commandes en attente</p>
+          <p class="text-3xl font-bold mt-2">${kpis.commandes_en_attente}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-clock text-2xl"></i>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center text-blue-100 text-sm">
+        <i class="fas fa-arrow-up mr-1"></i>
+        <span>À traiter</span>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-amber-100 text-sm font-medium">Commandes approuvées</p>
+          <p class="text-3xl font-bold mt-2">${kpis.commandes_approuvees}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-check-circle text-2xl"></i>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center text-amber-100 text-sm">
+        <i class="fas fa-arrow-up mr-1"></i>
+        <span>En cours</span>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-emerald-100 text-sm font-medium">Stock total</p>
+          <p class="text-3xl font-bold mt-2">${kpis.stock_total}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-boxes text-2xl"></i>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center text-emerald-100 text-sm">
+        <span>unités disponibles</span>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-red-100 text-sm font-medium">Alertes actives</p>
+          <p class="text-3xl font-bold mt-2">${kpis.alertes_actives}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-2xl"></i>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center text-red-100 text-sm">
+        <i class="fas fa-arrow-up mr-1"></i>
+        <span>Attention requise</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Predictive Alerts Section -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-bell text-red-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Alertes Prédictives</h3>
+          <p class="text-sm text-slate-500">Notifications automatiques basées sur l'IA</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-6">
+      ${alertes.length === 0 
+        ? '<div class="text-center py-8"><i class="fas fa-check-circle text-emerald-500 text-4xl mb-3"></i><p class="text-slate-500">Aucune alerte active pour le moment.</p></div>'
+        : `
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Matière</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Message</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Urgence</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${alertes.map(alerte => `
+            <tr class="${(alerte.niveauurgence === 'haute' || alerte.niveauurgence === 'critique') ? 'bg-red-50' : 'bg-amber-50'} hover:bg-opacity-70 transition-colors">
+              <td class="px-6 py-4 font-medium text-slate-800">${alerte.matiere}</td>
+              <td class="px-6 py-4 text-slate-600">${alerte.typealerte}</td>
+              <td class="px-6 py-4 text-slate-600 text-sm">${alerte.message}</td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${alerte.niveauurgence === 'critique' ? 'bg-red-100 text-red-800' : alerte.niveauurgence === 'haute' ? 'bg-orange-100 text-orange-800' : 'bg-amber-100 text-amber-800'}">
+                  <span class="w-2 h-2 rounded-full ${alerte.niveauurgence === 'critique' ? 'bg-red-500' : alerte.niveauurgence === 'haute' ? 'bg-orange-500' : 'bg-amber-500'} mr-2"></span>
+                  ${alerte.niveauurgence}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <form method="POST" action="/dashboard/alerte/${alerte.idalert}/traiter" class="inline">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow">
+                    <i class="fas fa-check"></i>
+                    <span>Traiter</span>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      `}
+    </div>
+  </div>
+
+  <!-- Critical Stocks Section -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-orange-600"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800">Stocks Critiques</h3>
+          <p class="text-sm text-slate-500">Articles sous le seuil d'alerte</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-6">
+      ${stocksCritiques.length === 0 
+        ? '<div class="text-center py-8"><i class="fas fa-check-circle text-emerald-500 text-4xl mb-3"></i><p class="text-slate-500">Tous les stocks sont dans les normes.</p></div>'
+        : `
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Matière</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock actuel</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Seuil alerte</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Seuil critique</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${stocksCritiques.map(s => `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-6 py-4 font-medium text-slate-800">${s.libellé}</td>
+              <td class="px-6 py-4">
+                <span class="text-lg font-bold ${s.qtedisponible <= s.seuilcritique ? 'text-red-600' : 'text-orange-600'}">${s.qtedisponible}</span>
+              </td>
+              <td class="px-6 py-4 text-slate-600">${s.seuilalerte}</td>
+              <td class="px-6 py-4 text-slate-600">${s.seuilcritique}</td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${s.qtedisponible <= s.seuilcritique ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}">
+                  ${s.qtedisponible <= s.seuilcritique ? 'Critique' : 'Alerte'}
+                </span>
+              </td>
+            </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      `}
+    </div>
+  </div>
+
+  <!-- Action Button -->
+  <div class="text-center">
+    <a href="/commandes/create" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+      <i class="fas fa-plus-circle text-xl"></i>
+      <span>Créer une nouvelle commande</span>
+    </a>
+  </div>
+</div>
+`;
+%>
+<%- include('../layout', { body: content }) %>
