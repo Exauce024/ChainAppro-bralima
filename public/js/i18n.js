@@ -39,6 +39,8 @@ const translations = {
     // Interface
     langue: "Langue",
     format_de_date: "Format de date",
+    devise: "Devise",
+    franc_congolais: "Franc congolais (FC)",
     francais: "Français",
     anglais: "English",
     
@@ -88,6 +90,8 @@ const translations = {
     // Interface
     langue: "Language",
     format_de_date: "Date Format",
+    devise: "Currency",
+    franc_congolais: "Congolese franc (CDF)",
     francais: "French",
     anglais: "English",
     

@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/js/i18n.js"></script>
+  <script src="/js/currency.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -145,7 +146,14 @@
       <!-- Navigation -->
       <nav class="flex-1 p-4">
         <ul class="space-y-2">
-          <% if (user && user.role_libelle === 'admin') { %>
+          <%
+            const navRole = String(user && user.role_libelle ? user.role_libelle : '').toLowerCase();
+            const isNavAdmin = navRole === 'admin' || navRole === 'administrateur';
+            const isNavGestionnaire = navRole === 'gestionnaire' || navRole === 'gestionnaire supply chain';
+            const isNavMagasinier = navRole === 'magasinier';
+            const isNavFournisseur = navRole === 'fournisseur';
+          %>
+          <% if (isNavAdmin) { %>
             <li>
               <a href="/admin/dashboard" class="sidebar-item flex items-center p-3 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-tachometer-alt w-5 mr-3"></i>
@@ -170,7 +178,7 @@
                 <span>Logs Audit</span>
               </a>
             </li>
-          <% } else if (user && user.role_libelle === 'gestionnaire') { %>
+          <% } else if (isNavGestionnaire) { %>
             <li>
               <a href="/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-tachometer-alt w-5 mr-3"></i>
@@ -195,11 +203,17 @@
                 <span>Alertes</span>
               </a>
             </li>
-          <% } else if (user && user.role_libelle === 'magasinier') { %>
+          <% } else if (isNavMagasinier) { %>
             <li>
               <a href="/magasinier/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-tachometer-alt w-5 mr-3"></i>
                 <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/magasinier/mouvements" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-exchange-alt w-5 mr-3"></i>
+                <span>Mouvements</span>
               </a>
             </li>
             <li>
@@ -209,18 +223,12 @@
               </a>
             </li>
             <li>
-              <a href="/magasinier/scan" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
-                <i class="fas fa-barcode w-5 mr-3"></i>
-                <span>Scan</span>
-              </a>
-            </li>
-            <li>
               <a href="/magasinier/stocks" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-warehouse w-5 mr-3"></i>
                 <span>Stocks</span>
               </a>
             </li>
-          <% } else if (user && user.role_libelle === 'fournisseur') { %>
+          <% } else if (isNavFournisseur) { %>
             <li>
               <a href="/fournisseur/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-tachometer-alt w-5 mr-3"></i>
@@ -228,7 +236,7 @@
               </a>
             </li>
             <li>
-              <a href="/fournisseur/commandes" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+              <a href="/fournisseur/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-clipboard-list w-5 mr-3"></i>
                 <span>Mes Commandes</span>
               </a>
@@ -300,20 +308,29 @@
       
       <div class="p-6">
         <!-- Flash Messages -->
-        <% if (success && success.length > 0) { %>
+        <%
+          function flashMessage(val) {
+            if (!val) return null;
+            if (Array.isArray(val)) return val.length ? val[0] : null;
+            return val;
+          }
+          const successMsg = flashMessage(typeof success !== 'undefined' ? success : null);
+          const errorMsg = flashMessage(typeof error !== 'undefined' ? error : null);
+        %>
+        <% if (successMsg) { %>
           <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div class="flex items-center">
               <i class="fas fa-check-circle text-green-500 mr-2"></i>
-              <span class="text-green-700"><%= success %></span>
+              <span class="text-green-700"><%= successMsg %></span>
             </div>
           </div>
         <% } %>
         
-        <% if (error && error.length > 0) { %>
+        <% if (errorMsg) { %>
           <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div class="flex items-center">
               <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
-              <span class="text-red-700"><%= error %></span>
+              <span class="text-red-700"><%= errorMsg %></span>
             </div>
           </div>
         <% } %>
@@ -337,14 +354,22 @@
           <%- include('magasinier/dashboard_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Nouvelle Réception') { %>
           <%- include('magasinier/reception_content') %>
-        <% } else if (typeof title !== 'undefined' && title === 'Mode Scan Mobile') { %>
-          <%- include('magasinier/scan_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Mouvements de stock') { %>
+          <%- include('magasinier/mouvements_hub_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Sortie vers production') { %>
+          <%- include('magasinier/mouvement_sortie_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Transfert entre entrepôts') { %>
+          <%- include('magasinier/mouvement_transfert_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Ajustement inventaire') { %>
+          <%- include('magasinier/mouvement_ajustement_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Créer une Matière Première') { %>
           <%- include('gestionnaire/create_matiere_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Portail Fournisseur') { %>
           <%- include('fournisseur/dashboard_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Détails de la Commande') { %>
           <%- include('fournisseur/commande-detail_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Confirmer la livraison') { %>
+          <%- include('fournisseur/confirm_delivery_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Tableau de bord - Gestionnaire') { %>
           <%- include('dashboard/gestionnaire_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Gestion des Stocks') { %>
@@ -363,6 +388,8 @@
           <%- include('gestionnaire/alertes_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Paramètres') { %>
           <%- include('settings_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Mon Profil') { %>
+          <%- include('profile/profile_content') %>
         <% } else if (typeof title !== 'undefined' && title.startsWith('Commande n°')) { %>
           <%- include('commande/commande_details_content') %>
         <% } %>

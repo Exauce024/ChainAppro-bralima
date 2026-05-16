@@ -71,6 +71,7 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
@@ -106,7 +107,33 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <%= commande.montant ? commande.montant.toLocaleString('fr-FR') + ' FCFA' : '---' %>
+                <%= commande.montant ? formatMoney(commande.montant) : '—' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-commande.pdf"
+                     class="text-primary hover:text-blue-900 p-1.5 rounded border border-transparent hover:border-blue-200"
+                     title="Bon de commande (PDF)"
+                     target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-file-pdf"></i>
+                  </a>
+                  <% if (commande.bonTransportDisponible) { %>
+                  <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-transport.pdf"
+                     class="text-amber-600 hover:text-amber-800 p-1.5 rounded border border-transparent hover:border-amber-200"
+                     title="Pour le chauffeur / transport"
+                     target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-dolly"></i>
+                  </a>
+                  <% } %>
+                  <% if (commande.statut === 'livree') { %>
+                  <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-livraison.pdf"
+                     class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded border border-transparent hover:border-emerald-200"
+                     title="Bon livraison (après réception)"
+                     target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-clipboard-check"></i>
+                  </a>
+                  <% } %>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <a href="/fournisseur/commande/<%= commande.idcommande %>" class="text-blue-600 hover:text-blue-900">
@@ -143,13 +170,13 @@
         </div>
       </div>
       <div class="space-y-3">
-        <a href="/fournisseur/documents" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+        <a href="/fournisseur/dashboard" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div class="flex items-center justify-between">
             <span class="text-sm font-medium text-gray-700">Catalogue produits</span>
             <i class="fas fa-chevron-right text-gray-400"></i>
           </div>
         </a>
-        <a href="/fournisseur/documents" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+        <a href="/fournisseur/dashboard" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div class="flex items-center justify-between">
             <span class="text-sm font-medium text-gray-700">Factures</span>
             <i class="fas fa-chevron-right text-gray-400"></i>
@@ -169,7 +196,7 @@
         </div>
       </div>
       <div class="space-y-3">
-        <a href="/fournisseur/profile" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+        <a href="/profile" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div class="flex items-center justify-between">
             <span class="text-sm font-medium text-gray-700">Profil</span>
             <i class="fas fa-chevron-right text-gray-400"></i>

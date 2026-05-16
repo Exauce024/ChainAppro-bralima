@@ -12,16 +12,18 @@ class DashboardController {
       const alertes = await DashboardModel.getAlertesActives();
       const stocksCritiques = await DashboardModel.getStockCritique();
       const stocks = await StockModel.findAll();
+      const commandesRecentes = await DashboardModel.getCommandesRecentes(10);
 
       res.render('layout_modern', {
         kpis,
         alertes,
         stocksCritiques,
         stocks,
+        commandesRecentes,
         user: req.session.user,
         title: 'Tableau de bord - Gestionnaire',
-        success: null,
-        error: null
+        success: req.flash('success'),
+        error: req.flash('error'),
       });
     } catch (err) {
       console.error(err);

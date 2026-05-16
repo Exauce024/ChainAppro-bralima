@@ -1,14 +1,29 @@
 <div class="space-y-6">
   <!-- Page Header -->
   <div>
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
       <div>
         <h1 class="text-2xl font-bold text-gray-800">Commande n°<%= commande.idcommande %></h1>
         <p class="text-gray-600 mt-1"><%= commande.raisonsocial || 'Fournisseur non spécifié' %></p>
       </div>
-      <a href="/commandes" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-        <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
-      </a>
+      <div class="flex items-center gap-2 flex-wrap">
+        <a href="/commandes/<%= commande.idcommande %>/bon-commande.pdf" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-900 transition-colors text-sm inline-flex items-center" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-file-pdf mr-2"></i>Bon de commande
+        </a>
+        <% if (typeof bonTransportDisponible !== 'undefined' && bonTransportDisponible) { %>
+          <a href="/commandes/<%= commande.idcommande %>/bon-transport.pdf" class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm inline-flex items-center" target="_blank" rel="noopener noreferrer" title="À remettre au chauffeur avec la livraison">
+            <i class="fas fa-dolly mr-2"></i>Chauffeur / transport
+          </a>
+        <% } %>
+        <% if (commande.statut === 'livree') { %>
+          <a href="/commandes/<%= commande.idcommande %>/bon-livraison.pdf" class="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 transition-colors text-sm inline-flex items-center" target="_blank" rel="noopener noreferrer" title="Bon émis après confirmation de livraison">
+            <i class="fas fa-clipboard-check mr-2"></i>Bon livraison (réception)
+          </a>
+        <% } %>
+        <a href="/commandes" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+        </a>
+      </div>
     </div>
   </div>
 
@@ -88,6 +103,12 @@
               <%= commande.deleidellivraison ? new Date(commande.deleidellivraison).toLocaleDateString('fr-FR') : 'Non définie' %>
             </p>
           </div>
+          <% if (typeof commande.montant !== 'undefined' && commande.montant != null) { %>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Montant total</label>
+            <p class="text-lg font-semibold text-gray-900"><%= formatMoney(commande.montant) %></p>
+          </div>
+          <% } %>
         </div>
       </div>
       

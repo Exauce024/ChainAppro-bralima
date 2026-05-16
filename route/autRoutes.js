@@ -5,6 +5,7 @@ const { redirectByRole } = require('../middleware/authMiddlawere');
 
 router.get('/login', AuthController.showLogin);
 router.post('/login', AuthController.login);
+router.get('/logout', AuthController.logout);
 router.post('/logout', AuthController.logout);
 // Dans authRoutes.js → supprime ou commente l'ancienne
 // router.get('/magic-access', AuthController.magicAccess);

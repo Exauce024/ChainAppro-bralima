@@ -6,7 +6,7 @@
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow p-6 text-center">
       <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
         <i class="fas fa-clock text-blue-600 text-lg"></i>
@@ -21,6 +21,14 @@
       </div>
       <h3 class="text-lg font-semibold text-gray-900"><%= kpis.commandes_approuvees %></h3>
       <p class="text-sm text-gray-600">Approuvées</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 text-center border-2 border-purple-200">
+      <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-truck text-purple-600 text-lg"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900"><%= kpis.commandes_livrees || 0 %></h3>
+      <p class="text-sm text-gray-600 font-medium text-purple-700">Livrées</p>
     </div>
     
     <div class="bg-white rounded-lg shadow p-6 text-center">
@@ -75,6 +83,51 @@
       </a>
     </div>
   </div>
+
+  <!-- Commandes récentes -->
+  <% if (typeof commandesRecentes !== 'undefined' && commandesRecentes.length > 0) { %>
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-gray-900">Commandes récentes</h2>
+      <a href="/commandes" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Voir toutes →</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">N°</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fournisseur</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% commandesRecentes.forEach(function(cmd) { 
+            var badge = 'bg-gray-100 text-gray-800';
+            var label = cmd.statut;
+            if (cmd.statut === 'livree') { badge = 'bg-purple-100 text-purple-800'; label = 'Livrée'; }
+            else if (cmd.statut === 'approuvee') { badge = 'bg-green-100 text-green-800'; label = 'Approuvée'; }
+            else if (cmd.statut === 'en_attente') { badge = 'bg-blue-100 text-blue-800'; label = 'En attente'; }
+            else if (cmd.statut === 'refusee') { badge = 'bg-red-100 text-red-800'; label = 'Refusée'; }
+          %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3 text-sm font-medium"><%= cmd.idcommande %></td>
+              <td class="px-4 py-3 text-sm"><%= cmd.reference || '—' %></td>
+              <td class="px-4 py-3 text-sm"><%= cmd.raisonsocial || '—' %></td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full <%= badge %>"><%= label %></span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-500">
+                <%= cmd.datecreation ? new Date(cmd.datecreation).toLocaleDateString('fr-FR') : '—' %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
 
   <!-- Alerts Summary -->
   <% if (alertes.length > 0) { %>

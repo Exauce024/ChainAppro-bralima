@@ -1,8 +1,25 @@
 <div class="space-y-6">
   <!-- Page Header -->
-  <div>
-    <h1 class="text-2xl font-bold text-gray-800">Détails de la Commande n°<%= commande.idcommande %></h1>
-    <p class="text-gray-600 mt-1">Informations détaillées de la commande</p>
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Détails de la Commande n°<%= commande.idcommande %></h1>
+      <p class="text-gray-600 mt-1">Informations détaillées de la commande</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-commande.pdf" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-900 transition-colors text-sm inline-flex items-center" target="_blank" rel="noopener noreferrer">
+        <i class="fas fa-file-pdf mr-2"></i>Bon de commande
+      </a>
+      <% if (typeof bonTransportDisponible !== 'undefined' && bonTransportDisponible) { %>
+        <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-transport.pdf" class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm inline-flex items-center" target="_blank" rel="noopener noreferrer" title="À remettre au chauffeur — pour la livraison de la matière première.">
+          <i class="fas fa-dolly mr-2"></i>Chauffeur / transport
+        </a>
+      <% } %>
+      <% if (commande.statut === 'livree') { %>
+        <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-livraison.pdf" class="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm inline-flex items-center" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-clipboard-check mr-2"></i>Bon livraison (réception)
+        </a>
+      <% } %>
+    </div>
   </div>
 
   <!-- Order Info Card -->
@@ -58,7 +75,7 @@
       
       <div>
         <p class="text-sm text-gray-500">Montant total</p>
-        <p class="text-2xl font-bold text-gray-900"><%= commande.montant ? commande.montant.toLocaleString('fr-FR') + ' FCFA' : '---' %></p>
+        <p class="text-2xl font-bold text-gray-900"><%= commande.montant ? formatMoney(commande.montant) : '—' %></p>
       </div>
     </div>
   </div>
@@ -81,26 +98,33 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière première</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <!-- Sample data - in real app this would come from database -->
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Produit A</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5,000 FCFA</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">50,000 FCFA</td>
-          </tr>
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Produit B</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8,000 FCFA</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">40,000 FCFA</td>
-          </tr>
+          <% if (typeof lignes !== 'undefined' && lignes.length > 0) { %>
+            <% lignes.forEach(function(ligne) { 
+              var totalLigne = Number(ligne.qtecommande) * Number(ligne.prixunitaire);
+            %>
+              <tr>
+                <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= ligne.libelle %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= ligne.qtecommande %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= formatMoney(ligne.prixunitaire) %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= formatMoney(totalLigne) %></td>
+              </tr>
+            <% }); %>
+            <tr class="bg-gray-50">
+              <td colspan="3" class="px-6 py-4 text-right text-sm font-semibold text-gray-700">Total commande</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900"><%= formatMoney(commande.montant || 0) %></td>
+            </tr>
+          <% } else { %>
+            <tr>
+              <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">Aucun article enregistré pour cette commande.</td>
+            </tr>
+          <% } %>
         </tbody>
       </table>
     </div>
@@ -178,10 +202,18 @@
     </a>
     
     <div class="space-x-4">
-      <% if (commande.statut === 'approuvee') { %>
-        <button onclick="confirmDelivery()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-          <i class="fas fa-check mr-2"></i>Confirmer la livraison
-        </button>
+      <% if (['en_attente', 'approuvee', 'en_cours', 'envoyee'].includes(commande.statut)) { %>
+        <form method="POST" action="/fournisseur/commande/<%= commande.idcommande %>/confirm-delivery" class="inline"
+          onsubmit="return confirm('Confirmer que cette commande a bien été livrée ?');">
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">
+            <i class="fas fa-check mr-2"></i>Confirmer la livraison
+          </button>
+        </form>
+      <% } %>
+      <% if (commande.statut === 'livree') { %>
+        <span class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-100 text-emerald-800 font-medium">
+          <i class="fas fa-check-circle mr-2"></i>Déjà livrée
+        </span>
       <% } %>
       
       <button onclick="printOrder()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
@@ -251,7 +283,7 @@ function exportOrder() {
   content += `Fournisseur: ${commande.raisonsocial || 'N/A'}\n`;
   content += `Date: ${commande.datecreation || 'N/A'}\n`;
   content += `Statut: ${commande.statut || 'N/A'}\n`;
-  content += `Montant: ${commande.montant || 'N/A'} FCFA\n`;
+  content += `Montant: ${commande.montant != null ? formatMoney(commande.montant) : 'N/A'}\n`;
   content += `Détails: ${commande.details || 'Aucun détail disponible'}\n`;
   
   // Create blob and download

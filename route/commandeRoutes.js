@@ -9,6 +9,9 @@ router.use(hasRole(['gestionnaire', 'admin'])); // seuls gestionnaire et admin p
 router.get('/', CommandeController.list);
 router.get('/create', CommandeController.showCreateForm);
 router.post('/create', CommandeController.create);
+router.get('/:id/bon-commande.pdf', CommandeController.downloadBonCommandePdf);
+router.get('/:id/bon-livraison.pdf', CommandeController.downloadBonLivraisonPdf);
+router.get('/:id/bon-transport.pdf', CommandeController.downloadBonTransportPdf);
 router.get('/:id', CommandeController.detail);
 router.post('/:id/statut', CommandeController.updateStatut);
 router.post('/:id/relancer', CommandeController.relancer);

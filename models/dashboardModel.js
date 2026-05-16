@@ -6,6 +6,7 @@ class DashboardModel {
       SELECT 
         (SELECT COUNT(*) FROM commande WHERE statut = 'en_attente') as commandes_en_attente,
         (SELECT COUNT(*) FROM commande WHERE statut = 'approuvee') as commandes_approuvees,
+        (SELECT COUNT(*) FROM commande WHERE statut = 'livree') as commandes_livrees,
         (SELECT SUM(qtedisponible) FROM stock) as stock_total,
         (SELECT COUNT(*) FROM alertepredictive WHERE statut = 'active') as alertes_actives
     `);
@@ -32,6 +33,17 @@ class DashboardModel {
       ORDER BY s.qtedisponible ASC
     `);
     return stocks;
+  }
+
+  static async getCommandesRecentes(limit = 10) {
+    const [rows] = await db.execute(`
+      SELECT c.idcommande, c.reference, c.statut, c.datecreation, f.raisonsocial
+      FROM commande c
+      LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur
+      ORDER BY c.datecreation DESC
+      LIMIT ?
+    `, [limit]);
+    return rows;
   }
 
   static async genererAlertes() {

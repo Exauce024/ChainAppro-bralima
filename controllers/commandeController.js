@@ -1,9 +1,19 @@
+const fs = require('fs');
 const CommandeModel = require('../models/commandeModel');
 const FournisseurModel = require('../models/fournisseurModel');
 const MatierePremiereModel = require('../models/matierePremiereModel');
 const Mailer = require('../utils/mailer');
 const crypto = require('crypto');
 const db = require('../config/db');
+const { normalizeStatut, canConfirmDelivery } = require('../utils/commandeStatuts');
+const {
+  generateBonCommandePdf,
+  generateBonLivraisonPdf,
+  generateBonTransportPdf,
+  getBonCommandePath,
+  getBonLivraisonPath,
+  getBonTransportPath,
+} = require('../utils/bonPdf');
 
 class CommandeController {
   static async list(req, res) {
@@ -54,7 +64,15 @@ class CommandeController {
         lignes: lignesNettoyees
       });
 
-      // Magic Link + email
+      /** Bon de commande PDF avant envoi e-mail au fournisseur (classement + pièce jointe) */
+      let bonCommandePath = null;
+      try {
+        bonCommandePath = await generateBonCommandePdf(idcommande);
+      } catch (pdfErr) {
+        console.error('PDF bon de commande (non bloquant):', pdfErr);
+      }
+
+      // E-mail unique fournisseur : récap + lien portail + PJ bon de commande (si PDF OK)
       const token = crypto.randomBytes(32).toString('hex');
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
       await db.execute(
@@ -72,8 +90,12 @@ class CommandeController {
       const fournisseur = await FournisseurModel.getWithEmail(idfournisseur);
       if (fournisseur && fournisseur.email) {
         try {
-          await Mailer.sendMagicLink(fournisseur.email, token, idcommande);
-          await Mailer.sendRecapCommande(fournisseur.email, { idcommande, reference });
+          await Mailer.sendNouvelleCommandeFournisseur(fournisseur.email, {
+            token,
+            idcommande,
+            reference,
+            bonCommandePdfPath: bonCommandePath,
+          });
         } catch (emailErr) {
           console.error('Erreur email (non bloquant):', emailErr);
           console.log('Email non configuré - Magic link disponible dans la console');
@@ -97,7 +119,104 @@ class CommandeController {
   static async detail(req, res) {
     const commande = await CommandeModel.findById(req.params.id);
     if (!commande) return res.status(404).send('Commande non trouvée');
-    res.render('layout_modern', { commande, user: req.session.user, title: `Commande n°${commande.idcommande}`, success: null, error: null });
+    const lignes = await CommandeModel.getLignes(req.params.id);
+    const montant = CommandeModel.computeMontantTotal(lignes);
+    const bonTransportDisponible = canConfirmDelivery(commande.statut);
+
+    res.render('layout_modern', {
+      commande: { ...commande, montant },
+      lignes,
+      bonTransportDisponible,
+      user: req.session.user,
+      title: `Commande n°${commande.idcommande}`,
+      success: null,
+      error: null,
+    });
+  }
+
+  static async downloadBonCommandePdf(req, res) {
+    try {
+      const { id } = req.params;
+      let filePath = getBonCommandePath(id);
+      if (!fs.existsSync(filePath)) {
+        try {
+          await generateBonCommandePdf(id);
+          filePath = getBonCommandePath(id);
+        } catch (genErr) {
+          console.error(genErr);
+          return res.status(404).send('Impossible de générer le bon de commande.');
+        }
+      }
+      const commande = await CommandeModel.findById(id);
+      const fallback = `bon-commande-${id}.pdf`;
+      const name =
+        commande?.reference &&
+        `${String(commande.reference).replace(/[^\w.-]+/g, '_')}-BC.pdf`;
+      res.download(filePath, name || fallback);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Erreur lors du téléchargement du bon de commande.');
+    }
+  }
+
+  static async downloadBonLivraisonPdf(req, res) {
+    try {
+      const { id } = req.params;
+      const commande = await CommandeModel.findById(id);
+      if (!commande) return res.status(404).send('Commande non trouvée');
+      if (normalizeStatut(commande.statut) !== 'livree') {
+        return res.status(400).send('Le bon de livraison est disponible uniquement pour une commande livrée.');
+      }
+      let filePath = getBonLivraisonPath(id);
+      if (!fs.existsSync(filePath)) {
+        try {
+          await generateBonLivraisonPdf(id);
+          filePath = getBonLivraisonPath(id);
+        } catch (genErr) {
+          console.error(genErr);
+          return res.status(404).send('Impossible de générer le bon de livraison.');
+        }
+      }
+      const fallback = `bon-livraison-${id}.pdf`;
+      const name =
+        commande.reference &&
+        `${String(commande.reference).replace(/[^\w.-]+/g, '_')}-BL.pdf`;
+      res.download(filePath, name || fallback);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Erreur lors du téléchargement du bon de livraison.');
+    }
+  }
+
+  static async downloadBonTransportPdf(req, res) {
+    try {
+      const { id } = req.params;
+      const commande = await CommandeModel.findById(id);
+      if (!commande) return res.status(404).send('Commande non trouvée');
+      if (!canConfirmDelivery(commande.statut)) {
+        return res
+          .status(400)
+          .send('Le bon pour le chauffeur n’est pas disponible pour le statut actuel de la commande.');
+      }
+
+      let filePath = getBonTransportPath(id);
+      try {
+        await generateBonTransportPdf(id);
+        filePath = getBonTransportPath(id);
+      } catch (genErr) {
+        console.error(genErr);
+        return res.status(404).send(genErr.message || 'Impossible de générer le bon de transport.');
+      }
+
+      const fallback = `bon-transport-chauffeur-${id}.pdf`;
+      const name =
+        commande.reference &&
+        `${String(commande.reference).replace(/[^\w.-]+/g, '_')}-Transport.pdf`;
+      res.download(filePath, name || fallback);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Erreur lors du téléchargement du bon de transport.');
+    }
   }
 
   static async updateStatut(req, res) {

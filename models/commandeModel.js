@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const StockModel = require('./stockModel');
 
 class CommandeModel {
   static async create({ reference, deleidellivraison, idcreateur, idfournisseur, lignes }) {
@@ -55,11 +56,84 @@ class CommandeModel {
     return rows[0];
   }
 
+  static async getLignes(idcommande) {
+    const [rows] = await db.execute(`
+      SELECT lc.idligne, lc.idcommande, lc.idmp, lc.qtecommande, lc.prixunitaire, lc.qtelivrée,
+             mp.libellé AS libelle, mp.description
+      FROM lignecommande lc
+      INNER JOIN matièrepremiere mp ON lc.idmp = mp.idmp
+      WHERE lc.idcommande = ?
+      ORDER BY lc.idligne ASC
+    `, [idcommande]);
+    return rows;
+  }
+
+  static computeMontantTotal(lignes) {
+    return lignes.reduce(
+      (sum, ligne) => sum + Number(ligne.qtecommande || 0) * Number(ligne.prixunitaire || 0),
+      0
+    );
+  }
+
   static async updateStatut(idcommande, statut, motifrefus = null) {
     await db.execute(
       `UPDATE commande SET statut = ?, motifrefus = ? WHERE idcommande = ?`,
       [statut, motifrefus, idcommande]
     );
+  }
+
+  static async markAsDelivered(idcommande, options = {}) {
+    const { iduser = null } = options;
+    const lignes = await CommandeModel.getLignes(idcommande);
+    const prixtotal = CommandeModel.computeMontantTotal(lignes);
+
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const [result] = await connection.execute(
+        `UPDATE commande SET statut = 'livree', motifrefus = NULL, prixtotal = ? WHERE idcommande = ?`,
+        [prixtotal, idcommande]
+      );
+
+      if (result.affectedRows === 0) {
+        throw new Error(`Commande ${idcommande} introuvable`);
+      }
+
+      for (const ligne of lignes) {
+        await connection.execute(
+          `UPDATE lignecommande SET qtelivrée = qtecommande WHERE idligne = ?`,
+          [ligne.idligne]
+        );
+      }
+
+      const stockCredits = await StockModel.creditStockFromLivraison(connection, {
+        idcommande,
+        lignes,
+        iduser,
+      });
+
+      try {
+        await connection.execute(
+          `INSERT INTO logaudit (iduser, action, module, detaillson) 
+           VALUES (?, 'CONFIRMER_LIVRAISON', 'COMMANDE', ?)`,
+          [
+            iduser,
+            `Commande ${idcommande} livrée par le fournisseur — stock crédité (+${stockCredits.totalUnits} unités sur ${stockCredits.linesUpdated} article(s))`,
+          ]
+        );
+      } catch (auditErr) {
+        console.error('Log audit livraison (non bloquant):', auditErr.message);
+      }
+
+      await connection.commit();
+      return { stockCredits };
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
   }
 }
 

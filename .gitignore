@@ -1,0 +1,13 @@
+# Secrets — ne jamais versionner
+.env
+.env.local
+.env.*.local
+
+# Dépendances
+node_modules/
+
+# Logs / fichiers temporaires locaux
+temp/
+
+# PDF générés (bons commande / livraison / transport)
+storage/bons/*.pdf

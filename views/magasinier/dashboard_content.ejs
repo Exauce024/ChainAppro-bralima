@@ -1,152 +1,159 @@
 <div class="space-y-6">
-  <!-- Page Header -->
   <div>
     <h1 class="text-2xl font-bold text-gray-800">Tableau de bord Magasinier</h1>
-    <p class="text-gray-600 mt-1">Gestion des stocks et réceptions</p>
+    <p class="text-gray-600 mt-1">Gestion des stocks et réceptions — données en temps réel</p>
+  </div>
+
+  <!-- KPI -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500">
+      <p class="text-sm text-gray-500">Stock total</p>
+      <p class="text-2xl font-bold text-gray-900"><%= (stats.stockTotal || 0).toLocaleString('fr-CD') %> <span class="text-sm font-normal text-gray-500">unités</span></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-emerald-500">
+      <p class="text-sm text-gray-500">Matières en stock</p>
+      <p class="text-2xl font-bold text-gray-900"><%= stats.nbMatieresStockees || 0 %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-amber-500">
+      <p class="text-sm text-gray-500">Réceptions aujourd'hui</p>
+      <p class="text-2xl font-bold text-gray-900"><%= stats.receptionsAujourdhui || 0 %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-red-500">
+      <p class="text-sm text-gray-500">Alertes stock</p>
+      <p class="text-2xl font-bold text-gray-900"><%= stats.alertesStock || 0 %></p>
+    </div>
   </div>
 
   <!-- Quick Actions -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <a href="/magasinier/reception" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-4">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <a href="/magasinier/reception" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all flex items-center space-x-4">
       <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
         <i class="fas fa-truck-loading text-3xl"></i>
       </div>
       <div>
         <h3 class="text-xl font-bold">Nouvelle réception</h3>
-        <p class="text-blue-100 text-sm mt-1">Enregistrer une livraison</p>
+        <p class="text-blue-100 text-sm mt-1">Entrée livraison fournisseur</p>
       </div>
     </a>
-    
-    <a href="/magasinier/scan" class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-4">
+    <a href="/magasinier/mouvements" class="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all flex items-center space-x-4 ring-2 ring-indigo-400/40">
       <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-        <i class="fas fa-barcode text-3xl"></i>
+        <i class="fas fa-exchange-alt text-3xl"></i>
       </div>
       <div>
-        <h3 class="text-xl font-bold">Mode Scan Mobile</h3>
-        <p class="text-emerald-100 text-sm mt-1">Scanner les codes-barres</p>
+        <h3 class="text-xl font-bold">Flux mouvements</h3>
+        <p class="text-indigo-100 text-sm mt-1">Production · transfert · ajustement</p>
+      </div>
+    </a>
+    <a href="/magasinier/stocks" class="bg-gradient-to-br from-slate-600 to-slate-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all flex items-center space-x-4">
+      <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+        <i class="fas fa-warehouse text-3xl"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold">Stocks</h3>
+        <p class="text-slate-200 text-sm mt-1">Quantités par entrepôt</p>
       </div>
     </a>
   </div>
 
-  <!-- Stock Status Card -->
+  <!-- Stock par entrepôt -->
   <div class="bg-white rounded-lg shadow">
-    <div class="p-6 border-b border-gray-200">
+    <div class="p-6 border-b border-gray-200 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
           <i class="fas fa-warehouse text-purple-600"></i>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-800">État des stocks</h3>
-          <p class="text-sm text-gray-500">Inventaire actuel par entrepôt</p>
+          <h3 class="text-lg font-semibold text-gray-800">État des stocks par entrepôt</h3>
+          <p class="text-sm text-gray-500">Données issues de la base</p>
         </div>
       </div>
+      <a href="/magasinier/stocks" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Voir le détail →</a>
     </div>
-    
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrepôt</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produits</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Total</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alertes</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière MàJ</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entrepôt</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lignes stock</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantité totale</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Alertes</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dernière MàJ</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Entrepôt Principal</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">245</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12,450 unités</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">3 alertes</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Il y a 2h</td>
-          </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Entrepôt Secondaire</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">189</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8,230 unités</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">OK</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Il y a 1h</td>
-          </tr>
+          <% if (entrepotsSummary && entrepotsSummary.length > 0) { %>
+            <% entrepotsSummary.forEach(function(e) {
+              var alertes = Number(e.alertes_critiques || 0) + Number(e.alertes_faibles || 0);
+              var badgeClass = alertes > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
+              var badgeText = alertes > 0 ? alertes + ' alerte(s)' : 'OK';
+            %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= e.nom %></td>
+                <td class="px-6 py-4 text-sm text-gray-600"><%= e.nb_lignes_stock || 0 %></td>
+                <td class="px-6 py-4 text-sm text-gray-900"><%= Number(e.stock_total || 0).toLocaleString('fr-CD') %> unités</td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full <%= badgeClass %>"><%= badgeText %></span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">
+                  <%= e.derniere_maj ? new Date(e.derniere_maj).toLocaleString('fr-CD') : '—' %>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">Aucun entrepôt configuré. Exécutez le script seed pour initialiser les données.</td>
+            </tr>
+          <% } %>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Recent Activities -->
+  <!-- Mouvements récents -->
   <div class="bg-white rounded-lg shadow">
     <div class="p-6 border-b border-gray-200">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <i class="fas fa-history text-blue-600"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-800">Activités récentes</h3>
-            <p class="text-sm text-gray-500">Dernières opérations de stock</p>
-          </div>
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-history text-blue-600"></i>
         </div>
-        <a href="/magasinier/logs" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Voir tout</a>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">Mouvements récents</h3>
+          <p class="text-sm text-gray-500">Dernières entrées / sorties de stock</p>
+        </div>
       </div>
     </div>
-    
     <div class="p-6">
-      <div class="space-y-4">
-        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-          <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-            <i class="fas fa-plus text-green-600 text-xs"></i>
-          </div>
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-900">Réception de marchandise</p>
-            <p class="text-xs text-gray-500">50 unités de PROD-001 reçues</p>
-          </div>
-          <span class="text-xs text-gray-400">Il y a 30min</span>
+      <% if (recentMouvements && recentMouvements.length > 0) { %>
+        <div class="space-y-3">
+          <% recentMouvements.forEach(function(m) {
+            var sdRaw = m.stock_delta;
+            var delta = (sdRaw !== null && sdRaw !== undefined && sdRaw !== '') ? Number(sdRaw) : (m.type_mouvement === 'entree' ? Number(m.quantite) : -Number(m.quantite));
+            var isPlus = delta >= 0;
+            var iconBg = isPlus ? 'bg-green-100' : 'bg-red-100';
+            var iconClass = isPlus ? 'fa-arrow-down text-green-600' : 'fa-arrow-up text-red-600';
+            var userLabel = m.user_nom ? (m.user_prenom || '') + ' ' + m.user_nom : 'Système';
+            var when = m.date_mouvement ? new Date(m.date_mouvement).toLocaleString('fr-CD') : '';
+            var typeShort = ({ entree: 'Entrée', sortie: 'Sortie', transfert: 'Transf.', ajustement: 'Ajust.' })[m.type_mouvement] || m.type_mouvement;
+          %>
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <div class="w-8 h-8 <%= iconBg %> rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas <%= iconClass %> text-xs"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900">
+                  <span class="text-xs font-semibold text-gray-500 mr-2"><%= typeShort %></span>
+                  <%= isPlus ? '+' : '' %><%= delta %> — <%= m.matiere %>
+                </p>
+                <p class="text-xs text-gray-500 truncate"><%= m.motif || m.type_mouvement %> · <%= m.entrepot_nom %></p>
+                <p class="text-xs text-gray-400"><%= userLabel %><% if (m.idcommande) { %> · Cmd n°<%= m.idcommande %><% } %></p>
+              </div>
+              <span class="text-xs text-gray-400 whitespace-nowrap"><%= when %></span>
+            </div>
+          <% }); %>
         </div>
-        
-        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <i class="fas fa-barcode text-blue-600 text-xs"></i>
-          </div>
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-900">Scan de stock</p>
-            <p class="text-xs text-gray-500">Inventaire zone A-12 complété</p>
-          </div>
-          <span class="text-xs text-gray-400">Il y a 2h</span>
-        </div>
-        
-        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-          <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-            <i class="fas fa-exclamation text-yellow-600 text-xs"></i>
-          </div>
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-900">Alerte de stock</p>
-            <p class="text-xs text-gray-500">PROD-045 en dessous du seuil minimum</p>
-          </div>
-          <span class="text-xs text-gray-400">Il y a 3h</span>
-        </div>
-      </div>
+      <% } else { %>
+        <p class="text-sm text-gray-500 text-center py-6">Aucun mouvement enregistré pour le moment.</p>
+      <% } %>
     </div>
   </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Simulate real-time updates
-  setInterval(function() {
-    // Update stock counts randomly
-    const stockElements = document.querySelectorAll('.text-gray-900');
-    stockElements.forEach(function(element) {
-      if (element.textContent.includes('unités')) {
-        const current = parseInt(element.textContent.replace(/[^\d]/g, ''));
-        const change = Math.floor(Math.random() * 20) - 10;
-        const newValue = Math.max(0, current + change);
-        element.textContent = newValue.toLocaleString() + ' unités';
-      }
-    });
-  }, 30000); // Update every 30 seconds
-});
-</script>

@@ -1,0 +1,52 @@
+<div class="max-w-3xl mx-auto space-y-8">
+  <div>
+    <a href="/magasinier/mouvements" class="text-sm font-medium text-blue-700 hover:text-blue-900 inline-flex items-center mb-4">
+      <i class="fas fa-arrow-left mr-2"></i> Retour aux mouvements
+    </a>
+    <h1 class="text-3xl font-bold text-gray-900">Sortie vers production</h1>
+    <p class="text-gray-600 mt-2">Enregistrez la matière première qui quitte le magasin pour la production. Les quantités disponibles et les alertes sont mises à jour immédiatement.</p>
+  </div>
+
+  <form method="POST" action="/magasinier/mouvements/sortie-production" class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div class="bg-gradient-to-r from-rose-600 to-red-700 px-6 py-5 text-white">
+      <h2 class="text-lg font-semibold flex items-center gap-2">
+        <i class="fas fa-industry"></i> Bon de sortie production
+      </h2>
+      <p class="text-rose-100 text-sm mt-1">Référence OF ou équivalent obligatoire pour traçabilité.</p>
+    </div>
+    <div class="p-6 space-y-6">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Ligne de stock</label>
+        <select name="idstock" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+          <option value="">— Sélectionner —</option>
+          <% (lignesStock || []).forEach(function(l) { %>
+            <option value="<%= l.idstock %>"><%= l.libelle %> · <%= l.entrepot_nom %> · <%= Number(l.qtedisponible || 0).toLocaleString('fr-FR') %> u.</option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Quantité (unités entières)</label>
+          <input type="number" name="quantite" min="1" step="1" required placeholder="Ex. 120"
+                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Référence production / OF <span class="text-red-500">*</span></label>
+          <input type="text" name="reference_prod" required placeholder="Ex. OF-2026-0142"
+                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (optionnel)</label>
+        <textarea name="notes" rows="2" maxlength="300" placeholder="Ligne, shift, demandeur…"
+                  class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"></textarea>
+      </div>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <button type="submit" class="inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 text-white font-semibold shadow hover:opacity-95 transition-opacity">
+          <i class="fas fa-check mr-2"></i> Valider la sortie
+        </button>
+        <a href="/magasinier/mouvements" class="inline-flex items-center px-6 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">Annuler</a>
+      </div>
+    </div>
+  </form>
+</div>

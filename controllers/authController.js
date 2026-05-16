@@ -1,5 +1,6 @@
 const UserModel = require('../models/userModel');
 const db = require('../config/db');
+const { normalizeRole } = require('../middleware/authMiddlawere');
 
 class AuthController {
   static async showLogin(req, res) {
@@ -44,13 +45,13 @@ class AuthController {
       );
 
       // Redirection intelligente selon rôle
-      const role = user.role_libelle;
-      if (role === 'admin') return res.redirect('/admin/dashboard');
-      if (role === 'gestionnaire') return res.redirect('/dashboard');
+      const role = normalizeRole(user.role_libelle);
+      if (role === 'admin' || role === 'administrateur') return res.redirect('/admin/dashboard');
+      if (role === 'gestionnaire' || role === 'gestionnaire supply chain') return res.redirect('/dashboard');
       if (role === 'fournisseur') return res.redirect('/fournisseur/dashboard');
-      if (role === 'magasinier') return res.redirect('/magasinier/reception');
+      if (role === 'magasinier') return res.redirect('/magasinier/dashboard');
 
-      res.redirect('/dashboard');
+      res.redirect('/login');
     } catch (err) {
       console.error(err);
       res.render('login', { error: 'Erreur serveur', title: 'Connexion', success: null });

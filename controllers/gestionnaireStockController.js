@@ -23,6 +23,7 @@ class GestionnaireStockController {
         stats,
         user: req.session.user, 
         title: 'Gestion des Stocks',
+        showCreateMatiereButton: true,
         success: req.query.success || null,
         error: req.query.error || null
       });
@@ -34,6 +35,7 @@ class GestionnaireStockController {
         stats: {},
         user: req.session.user, 
         title: 'Gestion des Stocks',
+        showCreateMatiereButton: true,
         error: 'Erreur lors du chargement des stocks'
       });
     }

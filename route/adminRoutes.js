@@ -6,6 +6,7 @@ const { isAuthenticated, hasRole } = require('../middleware/authMiddlawere');
 router.use(isAuthenticated);
 router.use(hasRole(['admin']));   // Seul l'admin a accès à ce module
 
+router.get('/', (req, res) => res.redirect('/admin/dashboard'));
 router.get('/dashboard', AdminController.dashboard);
 router.get('/users', AdminController.users);
 router.get('/fournisseurs', AdminController.fournisseurs);

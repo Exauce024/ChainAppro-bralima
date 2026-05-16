@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js",
+    "stop-port": "powershell -Command \"$p=(Get-NetTCPConnection -LocalPort 4000 -ErrorAction SilentlyContinue).OwningProcess; if($p){Stop-Process -Id $p -Force; Write-Host 'Processus arrete sur le port 4000'} else {Write-Host 'Port 4000 libre'}\"",
     "dev": "nodemon app.js",
     "build-css": "tailwindcss -i ./public/css/style.css -o ./public/css/output.css --watch"
   },

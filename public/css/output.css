@@ -1,0 +1,5 @@
+/* Styles complémentaires BRALIMA (Tailwind chargé via CDN dans layout_modern) */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
