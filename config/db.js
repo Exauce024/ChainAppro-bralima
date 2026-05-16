@@ -9,8 +9,19 @@ require('dotenv').config();
  *   - DB_SSL_CA : contenu PEM complet (ou une seule ligne avec \n littéraux)
  *   - DB_SSL_CA_B64 : même certificat encodé en base64 (pratique sur Render)
  *   - DB_SSL_CA_PATH : chemin vers ca.pem (dev local uniquement en général)
+ * 
+ * Pour TiDB Cloud : SSL est obligatoire mais pas besoin de certificat spécifique
  */
 function buildSslOptions() {
+  // Si on est sur TiDB Cloud (détecté par le host), forcer SSL simple
+  if (process.env.DB_HOST && process.env.DB_HOST.includes('tidbcloud.com')) {
+    console.log('🔐 Connexion TiDB Cloud détectée - Activation SSL automatique');
+    return {
+      rejectUnauthorized: false  // TiDB Cloud utilise Let's Encrypt, certificat valide
+    };
+  }
+
+  // Comportement original pour Aiven et autres
   if (process.env.DB_SSL_DISABLE === 'true') {
     return undefined;
   }
@@ -24,6 +35,13 @@ function buildSslOptions() {
   } else if (process.env.DB_SSL_CA_B64) {
     ca = Buffer.from(process.env.DB_SSL_CA_B64, 'base64').toString('utf8');
   } else {
+    // Pour TiDB Cloud, même sans variables, on force SSL
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔐 Mode production - Activation SSL par défaut');
+      return {
+        rejectUnauthorized: false
+      };
+    }
     return undefined;
   }
 
