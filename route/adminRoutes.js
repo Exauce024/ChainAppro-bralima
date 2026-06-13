@@ -11,6 +11,9 @@ router.get('/dashboard', AdminController.dashboard);
 router.get('/users', AdminController.users);
 router.get('/fournisseurs', AdminController.fournisseurs);
 router.get('/logs', AdminController.logs);
+router.get('/users', AdminController.users);
+router.get('/fournisseurs', AdminController.fournisseurs);
+router.get('/logs', AdminController.logs);
 router.get('/create-user', AdminController.showCreateUser);
 router.post('/create-user', AdminController.createUser);
 router.get('/user/:id/:action(activate|suspend)', AdminController.toggleUser);
@@ -19,6 +22,12 @@ router.post('/user/:id/update', AdminController.updateUser);
 router.get('/user/:id/delete', AdminController.deleteUser);
 router.get('/create-fournisseur', AdminController.showCreateFournisseur);
 router.post('/create-fournisseur', AdminController.createFournisseur);
+// Supplier CRUD routes
+router.get('/fournisseur/:id', AdminController.viewFournisseur);
+router.get('/fournisseur/:id/edit', AdminController.editFournisseur);
+router.post('/fournisseur/:id/update', AdminController.updateFournisseur);
+router.get('/fournisseur/:id/delete', AdminController.confirmDeleteFournisseur);
+router.post('/fournisseur/:id/delete', AdminController.deleteFournisseur);
 router.get('/download-logs-pdf', AdminController.downloadLogsPDF);
 
 module.exports = router;

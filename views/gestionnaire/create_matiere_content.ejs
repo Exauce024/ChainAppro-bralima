@@ -2,7 +2,7 @@
   <!-- Page Header -->
   <div>
     <h1 class="text-2xl font-bold text-gray-800">Créer une Matière Première</h1>
-    <p class="text-gray-600 mt-1">Ajouter une nouvelle matière première avec génération automatique de code-barres</p>
+    <p class="text-gray-600 mt-1">Ajouter une nouvelle matière première dans le système</p>
   </div>
 
   <!-- Flash Messages -->
@@ -28,44 +28,6 @@
   <div class="bg-white rounded-lg shadow">
     <div class="p-6">
       <form method="POST" action="/matieres/create" class="space-y-6">
-        <!-- Barcode Generation Section -->
-        <div class="border-b border-gray-200 pb-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Code-Barres</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Type de génération</label>
-              <div class="space-y-3">
-                <label class="flex items-center">
-                  <input type="radio" name="generateAuto" value="auto" checked class="mr-2">
-                  <span class="text-sm text-gray-700">Génération automatique</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="generateAuto" value="manual" class="mr-2">
-                  <span class="text-sm text-gray-700">Saisie manuelle</span>
-                </label>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Code-barres</label>
-              <div class="relative">
-                <input type="text" 
-                       name="codebarre" 
-                       id="barcodeInput"
-                       value="<%= generatedBarcode || 'PROD001' %>" 
-                       readonly
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="button" 
-                        onclick="toggleBarcodeMode()" 
-                        id="toggleBtn"
-                        class="absolute right-2 top-2 text-blue-600 hover:text-blue-800 text-sm">
-                  <i class="fas fa-edit"></i>
-                </button>
-              </div>
-              <p class="text-xs text-gray-500 mt-1">Format: PRODXXX (ex: PROD001, PROD002)</p>
-            </div>
-          </div>
-        </div>
-
         <!-- Product Information -->
         <div class="border-b border-gray-200 pb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Informations Produit</h3>
@@ -84,6 +46,31 @@
                         rows="3"
                         placeholder="Description détaillée du produit..."
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fournisseur & Tarification -->
+        <div class="border-b border-gray-200 pb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Fournisseur & Tarification (Optionnel)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
+              <select name="idfournisseur" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Sélectionner un fournisseur</option>
+                <% fournisseurs.forEach(function(f) { %>
+                  <option value="<%= f.idfournisseur %>"><%= f.raisonsocial %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Prix par kilo (FC)</label>
+              <input type="number" 
+                     name="prix_kg" 
+                     min="0"
+                     step="0.01"
+                     placeholder="Ex: 1500"
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
           </div>
         </div>
@@ -113,33 +100,13 @@
           </div>
         </div>
 
-        <!-- Barcode Preview -->
-        <div class="bg-gray-50 rounded-lg p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Aperçu Code-Barres</h3>
-          <div class="flex items-center space-x-4">
-            <div class="bg-white p-4 rounded border-2 border-gray-300">
-              <div id="barcodePreview" class="font-mono text-lg font-bold text-center">
-                <%= generatedBarcode || 'PROD001' %>
-              </div>
-            </div>
-            <div class="text-sm text-gray-600">
-              <p class="font-medium mb-2">Format du code:</p>
-              <ul class="space-y-1">
-                <li>• Préfixe: PROD</li>
-                <li>• Numéro: 3 chiffres (001-999)</li>
-                <li>• Exemple: PROD001</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
         <!-- Form Actions -->
         <div class="flex justify-between items-center pt-6 border-t border-gray-200">
           <a href="/gestionnaire/stocks" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
             <i class="fas fa-arrow-left mr-2"></i>Retour aux stocks
           </a>
           <div class="space-x-4">
-            <button type="reset" onclick="resetForm()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+            <button type="reset" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
               <i class="fas fa-undo mr-2"></i>Réinitialiser
             </button>
             <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
@@ -150,135 +117,17 @@
       </form>
     </div>
   </div>
-
-  <!-- Existing Products Reference -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="p-6 border-b border-gray-200">
-      <h3 class="text-lg font-medium text-gray-900">Référence des Codes Existants</h3>
-      <p class="text-sm text-gray-500 mt-1">Derniers codes-barres générés</p>
-    </div>
-    <div class="p-6">
-      <div id="existingCodes" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <!-- Will be populated by JavaScript -->
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
-let isAutoMode = true;
-const generatedBarcode = '<%= generatedBarcode || "PROD001" %>';
-
-function toggleBarcodeMode() {
-  const barcodeInput = document.getElementById('barcodeInput');
-  const toggleBtn = document.getElementById('toggleBtn');
-  const autoRadio = document.querySelector('input[name="generateAuto"][value="auto"]');
-  const manualRadio = document.querySelector('input[name="generateAuto"][value="manual"]');
-  
-  isAutoMode = !isAutoMode;
-  
-  if (isAutoMode) {
-    barcodeInput.value = generatedBarcode;
-    barcodeInput.readOnly = true;
-    barcodeInput.classList.add('bg-gray-100');
-    barcodeInput.classList.remove('bg-white');
-    toggleBtn.innerHTML = '<i class="fas fa-edit"></i>';
-    autoRadio.checked = true;
-  } else {
-    barcodeInput.readOnly = false;
-    barcodeInput.classList.remove('bg-gray-100');
-    barcodeInput.classList.add('bg-white');
-    toggleBtn.innerHTML = '<i class="fas fa-lock"></i>';
-    manualRadio.checked = true;
-    barcodeInput.focus();
-  }
-}
-
-function resetForm() {
-  document.querySelector('form').reset();
-  // Reset to auto mode
-  if (!isAutoMode) {
-    toggleBarcodeMode();
-  }
-}
-
-function updateBarcodePreview() {
-  const barcodeInput = document.getElementById('barcodeInput');
-  const preview = document.getElementById('barcodePreview');
-  preview.textContent = barcodeInput.value || 'PROD001';
-}
-
-// Load existing codes for reference
-async function loadExistingCodes() {
-  try {
-    const existingCodesContainer = document.getElementById('existingCodes');
-    existingCodesContainer.innerHTML = `
-      <div class="text-center text-gray-500 col-span-full">
-        <i class="fas fa-spinner fa-spin"></i> Chargement...
-      </div>
-    `;
-    
-    // Simulate loading existing codes
-    setTimeout(() => {
-      existingCodesContainer.innerHTML = `
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD001</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD002</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD003</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD004</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD005</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD006</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD007</div>
-        <div class="bg-gray-100 p-2 rounded text-center font-mono text-sm">PROD008</div>
-      `;
-    }, 1000);
-    
-  } catch (error) {
-    console.error('Erreur lors du chargement des codes existants:', error);
-  }
-}
-
-// Form validation
 document.addEventListener('DOMContentLoaded', function() {
-  loadExistingCodes();
-  
-  // Update preview when barcode changes
-  const barcodeInput = document.getElementById('barcodeInput');
-  barcodeInput.addEventListener('input', updateBarcodePreview);
-  
-  // Handle radio button changes
-  document.querySelectorAll('input[name="generateAuto"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      if (this.value === 'auto' && !isAutoMode) {
-        toggleBarcodeMode();
-      } else if (this.value === 'manual' && isAutoMode) {
-        toggleBarcodeMode();
-      }
-    });
-  });
-  
-  // Form submission validation
   const form = document.querySelector('form');
   form.addEventListener('submit', function(e) {
-    const barcode = document.getElementById('barcodeInput').value;
     const libelle = document.querySelector('input[name="libellé"]').value;
     
     if (!libelle.trim()) {
       e.preventDefault();
       alert('Le nom du produit est obligatoire');
-      return;
-    }
-    
-    if (!barcode.trim()) {
-      e.preventDefault();
-      alert('Le code-barres est obligatoire');
-      return;
-    }
-    
-    // Validate barcode format
-    const barcodePattern = /^PROD\d{3}$/;
-    if (!isAutoMode && !barcodePattern.test(barcode)) {
-      e.preventDefault();
-      alert('Le code-barres doit suivre le format PRODXXX (ex: PROD001)');
       return;
     }
   });

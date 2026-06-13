@@ -260,10 +260,25 @@
           <!-- Profile Section -->
           <div class="flex items-center space-x-4">
             <!-- Notifications -->
-            <button class="relative p-2 text-gray-600 hover:text-gray-800 transition-colors">
-              <i class="fas fa-bell text-lg"></i>
-              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <div class="relative">
+              <button id="notificationButton" class="relative p-2 text-gray-600 hover:text-gray-800 transition-colors focus:outline-none">
+                <i class="fas fa-bell text-lg"></i>
+                <span id="notificationBadge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+              </button>
+              
+              <!-- Dropdown Panel -->
+              <div id="notificationDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50 overflow-hidden">
+                <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                  <span class="font-semibold text-gray-800 text-sm">Notifications</span>
+                  <button id="markAllReadBtn" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Tout marquer comme lu</button>
+                </div>
+                <div id="notificationList" class="max-h-64 overflow-y-auto divide-y divide-gray-100 text-xs">
+                  <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Chargement...
+                  </div>
+                </div>
+              </div>
+            </div>
             
             <!-- Profile Menu -->
             <div class="flex items-center space-x-3">
@@ -342,6 +357,12 @@
           <%- include('admin/users') %>
         <% } else if (typeof title !== 'undefined' && title === 'Gestion des Fournisseurs') { %>
           <%- include('admin/fournisseurs') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Modifier Fournisseur') { %>
+          <%- include('admin/edit-fournisseur') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Détails du Fournisseur') { %>
+          <%- include('admin/view-fournisseur') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Supprimer Fournisseur') { %>
+          <%- include('admin/delete-fournisseur') %>
         <% } else if (typeof title !== 'undefined' && title === 'Logs d\'Audit') { %>
           <%- include('admin/logs') %>
         <% } else if (typeof title !== 'undefined' && title === 'Créer un utilisateur') { %>
@@ -440,6 +461,143 @@
           e.stopPropagation();
         });
       }
+    });
+
+    // Notifications dropdown menu and logic
+    document.addEventListener('DOMContentLoaded', function() {
+      const notificationButton = document.getElementById('notificationButton');
+      const notificationDropdown = document.getElementById('notificationDropdown');
+      const notificationList = document.getElementById('notificationList');
+      const notificationBadge = document.getElementById('notificationBadge');
+      const markAllReadBtn = document.getElementById('markAllReadBtn');
+      
+      if (!notificationButton || !notificationDropdown) return;
+
+      // Toggle menu
+      notificationButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        notificationDropdown.classList.toggle('hidden');
+        if (!notificationDropdown.classList.contains('hidden')) {
+          loadNotifications();
+        }
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!notificationDropdown.contains(e.target) && e.target !== notificationButton) {
+          notificationDropdown.classList.add('hidden');
+        }
+      });
+
+      // Load notifications from API
+      async function loadNotifications() {
+        try {
+          const res = await fetch('/notifications');
+          const data = await res.json();
+          if (data.success) {
+            updateBadge(data.unreadCount);
+            renderList(data.notifications);
+          }
+        } catch (err) {
+          console.error('Erreur chargement notifications:', err);
+          notificationList.innerHTML = '<div class="p-4 text-center text-red-500">Erreur de chargement</div>';
+        }
+      }
+
+      function updateBadge(unreadCount) {
+        const badge = document.getElementById('notificationBadge');
+        if (unreadCount > 0) {
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      function renderList(notifications) {
+        if (notifications.length === 0) {
+          notificationList.innerHTML = '<div class="p-4 text-center text-gray-500">Aucune notification</div>';
+          return;
+        }
+
+        let html = '';
+        notifications.forEach(notif => {
+          const isUnread = !notif.lu;
+          const dateStr = new Date(notif.datecreation).toLocaleString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit'
+          });
+          html += `
+            <div class="p-3 hover:bg-gray-50 transition-colors ${isUnread ? 'bg-blue-50/50 font-medium' : ''} flex justify-between items-start gap-2" data-id="${notif.idnotification}">
+              <div class="flex-1">
+                <div class="flex justify-between items-center mb-0.5">
+                  <span class="font-semibold text-gray-800">${escapeHtml(notif.titre)}</span>
+                  <span class="text-[10px] text-gray-400 font-normal">${dateStr}</span>
+                </div>
+                <p class="text-gray-600 text-[11px] leading-snug">${escapeHtml(notif.description)}</p>
+              </div>
+              ${isUnread ? `
+                <button class="mark-single-read text-[10px] text-blue-500 hover:text-blue-700 ml-1 mt-0.5 focus:outline-none" title="Marquer comme lu">
+                  <i class="fas fa-check"></i>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        });
+        notificationList.innerHTML = html;
+
+        // Attacher les events pour marquer unitairement comme lu
+        document.querySelectorAll('.mark-single-read').forEach(btn => {
+          btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const parent = this.closest('[data-id]');
+            const id = parent.dataset.id;
+            try {
+              const res = await fetch(`/notifications/${id}/read`, { method: 'POST' });
+              const data = await res.json();
+              if (data.success) {
+                parent.classList.remove('bg-blue-50/50', 'font-medium');
+                this.remove();
+                // recalculer le badge
+                const unread = document.querySelectorAll('.mark-single-read').length;
+                updateBadge(unread);
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          });
+        });
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
+
+      // Marquer tout comme lu
+      markAllReadBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          const res = await fetch('/notifications/read-all', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            document.querySelectorAll('#notificationList > div').forEach(item => {
+              item.classList.remove('bg-blue-50/50', 'font-medium');
+            });
+            document.querySelectorAll('.mark-single-read').forEach(btn => btn.remove());
+            updateBadge(0);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      // Charger au chargement de la page pour le badge rouge initial
+      loadNotifications();
     });
   </script>
 </body>

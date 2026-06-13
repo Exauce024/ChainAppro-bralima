@@ -1,0 +1,8 @@
+node_modules
+temp
+storage/bons/*.pdf
+.git
+.env
+.cursor
+*.log
+*.err

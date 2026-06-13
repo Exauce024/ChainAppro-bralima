@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # 1. Base de données MySQL isolée pour votre application
+  db:
+    image: mysql:8.0
+    container_name: bralima-db-exauce
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: gestionstocks
+    ports:
+      # Port MySQL externe (par défaut 3309 attribué pour éviter les conflits)
+      - "${DB_EXTERNAL_PORT:-3309}:3306"
+    volumes:
+      - bralima_db_data_exauce:/var/lib/mysql
+      - ./gestionstocks.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # 2. Application Web Node.js
+  app:
+    build: .
+    container_name: bralima-app-exauce
+    restart: always
+    ports:
+      # Port Web externe (par défaut 8002 attribué redirigé vers 8000 dans le conteneur)
+      - "${APP_EXTERNAL_PORT:-8002}:8000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - DB_NAME=gestionstocks
+      - PORT=8000
+      - SESSION_SECRET=bralima-super-secret-TFE
+      # Remplacez localhost par l'IP de votre serveur Contabo lors du déploiement
+      - BASE_URL=http://localhost:${APP_EXTERNAL_PORT:-8002}
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_USER=exaucebanza04@gmail.com
+      - EMAIL_PASS=hdal bwys eojg mwjb
+      - NODE_ENV=production
+    depends_on:
+      - db
+
+volumes:
+  bralima_db_data_exauce:

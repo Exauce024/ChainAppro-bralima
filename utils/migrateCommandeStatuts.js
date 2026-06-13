@@ -14,10 +14,11 @@ async function ensureCommandeStatutsEnum() {
         'annulee',
         'livree',
         'en_cours',
-        'envoyee'
+        'envoyee',
+        'en_cours_de_livraison'
       ) DEFAULT 'en_attente'
     `);
-    console.log('✅ ENUM commande.statut à jour (en_cours, envoyee)');
+    console.log('✅ ENUM commande.statut à jour (en_cours, envoyee, en_cours_de_livraison)');
   } catch (err) {
     console.warn('⚠️ Migration statuts commande (non bloquant):', err.message);
   }

@@ -22,9 +22,28 @@ class CommandeController {
   }
 
   static async showCreateForm(req, res) {
-    const fournisseurs = await FournisseurModel.findAll();
-    const matieres = await MatierePremiereModel.findAll();
-    res.render('layout_modern', { fournisseurs, matieres, user: req.session.user, title: 'Créer une nouvelle commande', success: null, error: null });
+    try {
+      const fournisseurs = await FournisseurModel.findAll();
+      const matieres = await MatierePremiereModel.findAll();
+      const [relations] = await db.execute(`
+        SELECT fm.idfournisseur, fm.idmp, fm.prix_kg, mp.libellé AS libelle
+        FROM fournisseur_matiere fm
+        INNER JOIN matièrepremiere mp ON fm.idmp = mp.idmp
+      `);
+      
+      res.render('layout_modern', { 
+        fournisseurs, 
+        matieres, 
+        relations, 
+        user: req.session.user, 
+        title: 'Créer une nouvelle commande', 
+        success: null, 
+        error: null 
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Erreur lors du chargement du formulaire de commande');
+    }
   }
 
   static async create(req, res) {
@@ -47,14 +66,34 @@ class CommandeController {
       // Si lignes n'est pas un tableau, le convertir
       const lignesArray = Array.isArray(lignes) ? lignes : [lignes];
 
-      // Validation et nettoyage des lignes
-      const lignesNettoyees = lignesArray.map(ligne => ({
-        idmp: ligne.idmp,
-        qtecommande: parseFloat(ligne.qtecommande) || 0,
-        prixunitaire: parseFloat(ligne.prixunitaire) || 0
-      }));
+      // Validation et nettoyage des lignes + récupération du prix officiel depuis la BD pour éviter la fraude
+      const lignesNettoyees = [];
+      for (const ligne of lignesArray) {
+        const idmp = parseInt(ligne.idmp);
+        if (!idmp) continue;
 
-      console.log('Lignes nettoyées:', lignesNettoyees);
+        // Requête sur fournisseur_matiere pour récupérer le prix officiel
+        const [priceRow] = await db.execute(
+          'SELECT prix_kg FROM fournisseur_matiere WHERE idfournisseur = ? AND idmp = ?',
+          [idfournisseur, idmp]
+        );
+
+        let officialPrice = 0;
+        if (priceRow.length > 0) {
+          officialPrice = parseFloat(priceRow[0].prix_kg);
+        } else {
+          // Si aucune relation n'existe, on jette une erreur pour prévenir la fraude
+          return res.status(400).send(`Le tarif pour la matière sélectionnée (ID: ${idmp}) n'est pas configuré pour ce fournisseur.`);
+        }
+
+        lignesNettoyees.push({
+          idmp,
+          qtecommande: parseFloat(ligne.qtecommande) || 0,
+          prixunitaire: officialPrice // Utilisation STRICTE du prix officiel en base de données
+        });
+      }
+
+      console.log('Lignes nettoyées (prix officiel):', lignesNettoyees);
 
       const idcommande = await CommandeModel.create({
         reference,
@@ -63,6 +102,18 @@ class CommandeController {
         idfournisseur,
         lignes: lignesNettoyees
       });
+
+      // Création de la notification pour le fournisseur
+      try {
+        const NotificationModel = require('../models/notificationModel');
+        await NotificationModel.create({
+          role_libelle: 'fournisseur',
+          titre: 'Nouvelle commande d\'approvisionnement',
+          description: `Une nouvelle commande (${reference}) a été créée par le gestionnaire. Veuillez confirmer l'expédition.`
+        });
+      } catch (notifErr) {
+        console.error('Erreur notification commande créée (non bloquante):', notifErr);
+      }
 
       /** Bon de commande PDF avant envoi e-mail au fournisseur (classement + pièce jointe) */
       let bonCommandePath = null;
@@ -266,19 +317,38 @@ class CommandeController {
     return reference;
   }
 
-  // Relance manuelle (on ajoutera un cron plus tard)
+  // Relance manuelle
   static async relancer(req, res) {
-    const { id } = req.params;
-    const commande = await CommandeModel.findById(id);
+    try {
+      const { id } = req.params;
+      const commande = await CommandeModel.findById(id);
 
-    if (commande && commande.statut === 'en_attente') {
-      const fournisseur = await FournisseurModel.getWithEmail(commande.idfournisseur);
-      if (fournisseur && fournisseur.email) {
-        await Mailer.sendMagicLink(fournisseur.email, 'RELANCE-' + Date.now(), commande.idcommande); // token temporaire
+      if (commande && (commande.statut === 'en_attente' || commande.statut === 'approuvee')) {
+        const fournisseur = await FournisseurModel.getWithEmail(commande.idfournisseur);
+        if (fournisseur && fournisseur.email) {
+          // Envoi de l'e-mail de relance
+          await Mailer.sendMagicLink(fournisseur.email, 'RELANCE-' + Date.now(), commande.idcommande);
+        }
+
+        if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
+          return res.json({ success: true, message: 'Relance envoyée avec succès' });
+        }
+        req.flash('success', 'Relance envoyée avec succès au fournisseur.');
+        return res.redirect('back');
+      } else {
+        if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
+          return res.status(400).json({ success: false, message: 'La commande ne peut pas être relancée' });
+        }
+        req.flash('error', 'Cette commande ne peut pas être relancée.');
+        return res.redirect('back');
       }
-      res.json({ success: true, message: 'Relance envoyée' });
-    } else {
-      res.status(400).json({ success: false });
+    } catch (err) {
+      console.error(err);
+      if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
+        return res.status(500).json({ success: false, message: err.message });
+      }
+      req.flash('error', 'Erreur lors de l\'envoi de la relance.');
+      return res.redirect('back');
     }
   }
 }

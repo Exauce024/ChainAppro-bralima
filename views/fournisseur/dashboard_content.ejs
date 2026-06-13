@@ -97,6 +97,9 @@
                 } else if (commande.statut === 'envoyee') { 
                   badgeClass = 'bg-blue-100 text-blue-800'; 
                   statusText = 'Envoyée';
+                } else if (commande.statut === 'en_cours_de_livraison') { 
+                  badgeClass = 'bg-amber-100 text-amber-800'; 
+                  statusText = 'En cours de livraison';
                 } else if (commande.statut === 'livree') { 
                   badgeClass = 'bg-emerald-100 text-emerald-800'; 
                   statusText = 'Livrée';

@@ -94,6 +94,7 @@ app.use('/matieres', require('./route/matierePremiereRoutes'));
 
 // Après les autres app.use
 app.use('/fournisseur', fournisseurRoutes);
+app.use('/notifications', require('./route/notificationRoutes'));
 
 app.get('/health', (req, res) => {
   res.json({
@@ -128,11 +129,15 @@ CronJobs.init();
 
 const { ensureCommandeStatutsEnum } = require('./utils/migrateCommandeStatuts');
 const { ensureMouvementStockDeltaColumn } = require('./utils/migrateMouvementStockDelta');
+const { ensureFournisseurMatiereTable } = require('./utils/migrateFournisseurMatiere');
+const { ensureNotificationTable } = require('./utils/migrateNotifications');
 ensureCommandeStatutsEnum();
 ensureMouvementStockDeltaColumn();
+ensureFournisseurMatiereTable();
+ensureNotificationTable();
 
 const PORT = parseInt(process.env.PORT, 10) || 4000;
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.IP || '::';
 
 function buildBaseUrl(port) {
   try {

@@ -2,7 +2,7 @@ const fs = require('fs');
 const CommandeModel = require('../models/commandeModel');
 const db = require('../config/db');
 const { normalizeRole } = require('../middleware/authMiddlawere');
-const { canConfirmDelivery, normalizeStatut } = require('../utils/commandeStatuts');
+const { canConfirmDelivery, normalizeStatut, canDownloadTransportPdf } = require('../utils/commandeStatuts');
 const {
   generateBonCommandePdf,
   generateBonLivraisonPdf,
@@ -79,7 +79,7 @@ class FournisseurController {
 
     const commandesAvecDocs = commandes.map((c) => ({
       ...c,
-      bonTransportDisponible: canConfirmDelivery(c.statut),
+      bonTransportDisponible: canDownloadTransportPdf(c.statut),
     }));
 
     res.render('layout_modern', {
@@ -106,7 +106,7 @@ class FournisseurController {
     res.render('layout_modern', {
       commande: context.commande,
       lignes: context.lignes,
-      bonTransportDisponible: canConfirmDelivery(context.commande.statut),
+      bonTransportDisponible: canDownloadTransportPdf(context.commande.statut),
       user: req.session.user || { role_libelle: 'fournisseur' },
       title: 'Détails de la Commande',
     });
@@ -241,7 +241,7 @@ class FournisseurController {
       const context = await FournisseurController.loadCommandeContext(id, idfournisseur);
       if (!context) return res.status(403).send('Cette commande ne vous appartient pas.');
 
-      if (!canConfirmDelivery(context.commande.statut)) {
+      if (!canDownloadTransportPdf(context.commande.statut)) {
         return res
           .status(400)
           .send('Le bon pour le chauffeur n’est pas disponible pour le statut actuel de la commande.');
@@ -283,8 +283,8 @@ class FournisseurController {
 
       const statut = normalizeStatut(context.commande.statut);
 
-      if (statut === 'livree') {
-        const message = 'Cette commande est déjà marquée comme livrée.';
+      if (statut === 'en_cours_de_livraison' || statut === 'livree') {
+        const message = 'L\'expédition ou la livraison de cette commande a déjà été confirmée.';
         if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
           return res.json({ success: true, message });
         }
@@ -293,7 +293,7 @@ class FournisseurController {
       }
 
       if (!canConfirmDelivery(statut)) {
-        const message = 'Cette commande ne peut pas être confirmée comme livrée.';
+        const message = 'Cette commande ne peut pas être expédiée dans son état actuel.';
         if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
           return res.status(400).json({ success: false, error: message });
         }
@@ -302,35 +302,48 @@ class FournisseurController {
       }
 
       const iduser = req.session.user?.idusers || null;
-      const { stockCredits } = await CommandeModel.markAsDelivered(id, { iduser });
+      await CommandeModel.markAsShipped(id, { iduser });
 
+      // Création des notifications pour le gestionnaire et le magasinier
       try {
-        await generateBonLivraisonPdf(id);
-      } catch (pdfErr) {
-        console.error('PDF bon de livraison (non bloquant):', pdfErr);
+        const NotificationModel = require('../models/notificationModel');
+        const ref = context.commande.reference || `n°${id}`;
+        const fournisseurNom = context.commande.raisonsocial || 'Fournisseur';
+        await NotificationModel.create({
+          role_libelle: 'gestionnaire',
+          titre: 'Commande expédiée',
+          description: `La commande ${ref} a été expédiée par le fournisseur ${fournisseurNom}.`
+        });
+        await NotificationModel.create({
+          role_libelle: 'magasinier',
+          titre: 'Commande expédiée (en transit)',
+          description: `La commande ${ref} de ${fournisseurNom} a été expédiée et est en route pour la réception.`
+        });
+      } catch (notifErr) {
+        console.error('Erreur notification expédition (non bloquante):', notifErr);
       }
 
-      const stockMsg =
-        stockCredits.totalUnits > 0
-          ? ` Stock mis à jour (+${stockCredits.totalUnits} unité(s)).`
-          : '';
+      try {
+        await generateBonTransportPdf(id);
+      } catch (pdfErr) {
+        console.error('PDF bon de transport (non bloquant):', pdfErr);
+      }
 
       if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
         return res.json({
           success: true,
-          message: `Livraison confirmée avec succès.${stockMsg}`,
-          stockCredits,
+          message: `Expédition confirmée avec succès. Le bon de transport est généré.`,
         });
       }
 
       req.flash(
         'success',
-        `Livraison de la commande n°${id} confirmée.${stockMsg} Le gestionnaire est notifié.`
+        `Expédition de la commande n°${id} confirmée. Le bon de transport pour le transporteur est prêt.`
       );
       return res.redirect('/fournisseur/dashboard');
     } catch (err) {
-      console.error('Erreur lors de la confirmation de livraison:', err);
-      const errorMessage = err.message || 'Erreur lors de la confirmation de livraison';
+      console.error('Erreur lors de la confirmation d\'expédition:', err);
+      const errorMessage = err.message || 'Erreur lors de la confirmation d\'expédition';
       if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
         return res.status(500).json({ success: false, error: errorMessage });
       }

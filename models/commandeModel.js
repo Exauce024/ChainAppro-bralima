@@ -82,6 +82,33 @@ class CommandeModel {
     );
   }
 
+  static async markAsShipped(idcommande, options = {}) {
+    const { iduser = null } = options;
+    const [result] = await db.execute(
+      `UPDATE commande SET statut = 'en_cours_de_livraison', motifrefus = NULL WHERE idcommande = ?`,
+      [idcommande]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error(`Commande ${idcommande} introuvable`);
+    }
+
+    try {
+      await db.execute(
+        `INSERT INTO logaudit (iduser, action, module, detaillson) 
+         VALUES (?, 'EXPEDIER_COMMANDE', 'COMMANDE', ?)`,
+        [
+          iduser,
+          `Commande ${idcommande} expédiée par le fournisseur (statut en_cours_de_livraison)`,
+        ]
+      );
+    } catch (auditErr) {
+      console.error('Log audit expédition (non bloquant):', auditErr.message);
+    }
+
+    return true;
+  }
+
   static async markAsDelivered(idcommande, options = {}) {
     const { iduser = null } = options;
     const lignes = await CommandeModel.getLignes(idcommande);

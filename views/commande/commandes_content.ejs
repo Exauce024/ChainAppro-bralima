@@ -142,6 +142,8 @@
                   <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">Approuvée</span>
                 <% } else if (commande.statut === 'en_cours') { %>
                   <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">En cours</span>
+                <% } else if (commande.statut === 'en_cours_de_livraison') { %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-200 text-amber-900">En cours de livraison</span>
                 <% } else if (commande.statut === 'livree') { %>
                   <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Livrée</span>
                 <% } else { %>

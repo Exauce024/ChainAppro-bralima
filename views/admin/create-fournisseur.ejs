@@ -95,6 +95,26 @@
                   placeholder="Adresse complète du fournisseur"></textarea>
       </div>
 
+      <!-- Matière Première Fournie -->
+      <div class="border-t border-gray-200 pt-6 mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Matière première initialement fournie (Optionnel)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="idmp" class="block text-sm font-medium text-gray-700 mb-2">Matière première</label>
+            <select id="idmp" name="idmp" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Sélectionner une matière</option>
+              <% matieres.forEach(function(matiere) { %>
+                <option value="<%= matiere.idmp %>"><%= matiere.libellé %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div>
+            <label for="prix_kg" class="block text-sm font-medium text-gray-700 mb-2">Prix par kilo (FC)</label>
+            <input type="number" id="prix_kg" name="prix_kg" min="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 1500">
+          </div>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <a href="/admin/fournisseurs" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">

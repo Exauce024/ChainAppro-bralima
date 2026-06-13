@@ -67,11 +67,13 @@ class MatierePremiereController {
     try {
       // Générer un code-barres automatiquement
       const generatedBarcode = await MatierePremiereController.generateBarcode();
+      const [fournisseurs] = await db.execute('SELECT idfournisseur, raisonsocial FROM fournisseur WHERE statut = "actif" ORDER BY raisonsocial');
       
       res.render('layout_modern', {
         user: req.session.user,
         title: 'Créer une Matière Première',
         generatedBarcode,
+        fournisseurs,
         success: req.query.success || null,
         error: req.query.error || null
       });
@@ -81,6 +83,7 @@ class MatierePremiereController {
         user: req.session.user,
         title: 'Créer une Matière Première',
         generatedBarcode: 'PROD001',
+        fournisseurs: [],
         error: 'Erreur lors de la génération du code-barres'
       });
     }
@@ -89,7 +92,7 @@ class MatierePremiereController {
   // Créer une nouvelle matière première
   static async create(req, res) {
     try {
-      const { libellé, description, seuilcritique, seuilalerte, codebarre, generateAuto } = req.body;
+      const { libellé, description, seuilcritique, seuilalerte, codebarre, generateAuto, idfournisseur, prix_kg } = req.body;
       
       let finalBarcode = codebarre;
       
@@ -114,6 +117,15 @@ class MatierePremiereController {
          VALUES (?, ?, ?, ?, ?)`,
         [libellé, description, seuilcritique || 0, seuilalerte || 0, finalBarcode]
       );
+      const idmp = result.insertId;
+
+      // Enregistrer l'association si un fournisseur et un prix sont renseignés
+      if (idmp && idfournisseur && prix_kg) {
+        await db.execute(
+          `INSERT INTO fournisseur_matiere (idfournisseur, idmp, prix_kg) VALUES (?, ?, ?)`,
+          [idfournisseur, idmp, parseFloat(prix_kg) || 0]
+        );
+      }
       
       // Log d'audit
       await db.execute(

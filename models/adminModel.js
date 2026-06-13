@@ -19,6 +19,34 @@ class AdminModel {
     return fournisseurs;
   }
 
+  // Get single fournisseur by id
+  static async getFournisseurById(id) {
+    const [rows] = await db.execute('SELECT * FROM fournisseur WHERE idfournisseur = ?', [id]);
+    return rows.length > 0 ? rows[0] : null;
+  }
+
+  // Update fournisseur details
+  static async updateFournisseur(id, data) {
+    const { raisonsocial, libellé, telephone, email, adresse, contact_nom, delai_livraison } = data;
+    await db.execute(`
+      UPDATE fournisseur SET raisonsocial = ?, libellé = ?, telephone = ?, email = ?, adresse = ?, contact_nom = ?, delai_livraison = ?
+      WHERE idfournisseur = ?
+    `, [raisonsocial, libellé, telephone, email, adresse, contact_nom, delai_livraison, id]);
+    await db.execute(
+      `INSERT INTO logaudit (iduser, action, module, detaillson) VALUES (NULL, 'UPDATE_FOURNISSEUR', 'ADMIN', ?)`,
+      [`Fournisseur ${id} mis à jour`]
+    );
+  }
+
+  // Delete fournisseur
+  static async deleteFournisseur(id) {
+    await db.execute('DELETE FROM fournisseur WHERE idfournisseur = ?', [id]);
+    await db.execute(
+      `INSERT INTO logaudit (iduser, action, module, detaillson) VALUES (NULL, 'DELETE_FOURNISSEUR', 'ADMIN', ?)`,
+      [`Fournisseur ${id} supprimé`]
+    );
+  }
+
   static async createUser(userData) {
     const { nom, prenom, email, motdepasse, telephone, role_id } = userData;
     const hashed = await bcrypt.hash(motdepasse, 12);

@@ -77,12 +77,39 @@ class AdminController {
   }
 
   static async showCreateFournisseur(req, res) {
-    res.render('layout_modern', { user: req.session.user, title: 'Créer un fournisseur', success: null, error: null });
+    try {
+      const [matieres] = await db.execute('SELECT idmp, libellé FROM matièrepremiere ORDER BY libellé');
+      res.render('layout_modern', { 
+        user: req.session.user, 
+        title: 'Créer un fournisseur', 
+        matieres,
+        success: null, 
+        error: null 
+      });
+    } catch (error) {
+      console.error(error);
+      res.render('layout_modern', { 
+        user: req.session.user, 
+        title: 'Créer un fournisseur', 
+        matieres: [],
+        success: null, 
+        error: 'Erreur lors du chargement des matières premières' 
+      });
+    }
   }
 
   static async createFournisseur(req, res) {
     try {
-      await AdminModel.createFournisseur(req.body);
+      const { idmp, prix_kg } = req.body;
+      const idfournisseur = await AdminModel.createFournisseur(req.body);
+      
+      if (idfournisseur && idmp && prix_kg) {
+        await db.execute(
+          `INSERT INTO fournisseur_matiere (idfournisseur, idmp, prix_kg) VALUES (?, ?, ?)`,
+          [idfournisseur, idmp, parseFloat(prix_kg) || 0]
+        );
+      }
+      
       res.redirect('/admin/dashboard?success=Fournisseur ajouté');
     } catch (err) {
       console.error(err);
@@ -90,10 +117,107 @@ class AdminController {
     }
   }
 
-  static async viewLogs(req, res) {
-    const logs = await AdminModel.getAuditLogs(200);
-    res.render('admin/logs', { logs, user: req.session.user, title: 'Logs d\'Audit', success: null, error: null });
+  // Show single fournisseur details
+  static async viewFournisseur(req, res) {
+    try {
+      const { id } = req.params;
+      const fournisseur = await AdminModel.getFournisseurById(id);
+      if (!fournisseur) {
+        return res.redirect('/admin/fournisseurs?error=Fournisseur non trouvé');
+      }
+      
+      // Fetch current association if any
+      const [assoc] = await db.execute(`
+        SELECT fm.idmp, fm.prix_kg, mp.libellé AS libellé_mp 
+        FROM fournisseur_matiere fm 
+        JOIN matièrepremiere mp ON fm.idmp = mp.idmp 
+        WHERE fm.idfournisseur = ?
+      `, [id]);
+      
+      if (assoc.length > 0) {
+        fournisseur.idmp = assoc[0].idmp;
+        fournisseur.libellé_mp = assoc[0].libellé_mp;
+        fournisseur.prix_kg = assoc[0].prix_kg;
+      }
+
+      res.render('layout_modern', { fournisseur, user: req.session.user, title: 'Détails du Fournisseur', success: null, error: null });
+    } catch (error) {
+      console.error('Erreur lors du chargement du fournisseur:', error);
+      res.redirect('/admin/fournisseurs?error=Erreur lors du chargement');
+    }
   }
+
+  // Render edit form for fournisseur
+  static async editFournisseur(req, res) {
+    try {
+      const { id } = req.params;
+      const fournisseur = await AdminModel.getFournisseurById(id);
+      if (!fournisseur) {
+        return res.redirect('/admin/fournisseurs?error=Fournisseur non trouvé');
+      }
+      const [matieres] = await db.execute('SELECT * FROM matièrepremiere ORDER BY libellé');
+      // Fetch current association if any
+      const [assoc] = await db.execute('SELECT * FROM fournisseur_matiere WHERE idfournisseur = ?', [id]);
+      res.render('layout_modern', { fournisseur, matieres, assoc: assoc[0] || null, user: req.session.user, title: 'Modifier Fournisseur', success: null, error: null });
+    } catch (error) {
+      console.error('Erreur lors du chargement du formulaire d\'édition:', error);
+      res.redirect('/admin/fournisseurs?error=Erreur lors du chargement');
+    }
+  }
+
+  // Handle edit form submission
+  static async updateFournisseur(req, res) {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await AdminModel.updateFournisseur(id, data);
+      
+      // Update association: clear old one first
+      await db.execute('DELETE FROM fournisseur_matiere WHERE idfournisseur = ?', [id]);
+      if (data.idmp && data.prix_kg) {
+        await db.execute(
+          `INSERT INTO fournisseur_matiere (idfournisseur, idmp, prix_kg) VALUES (?, ?, ?)`,
+          [id, data.idmp, parseFloat(data.prix_kg) || 0]
+        );
+      }
+      
+      res.redirect('/admin/fournisseurs?success=Fournisseur mis à jour');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du fournisseur:', error);
+      res.redirect('/admin/fournisseurs?error=Erreur lors de la mise à jour');
+    }
+  }
+
+  // Render delete confirmation for fournisseur
+  static async confirmDeleteFournisseur(req, res) {
+    try {
+      const { id } = req.params;
+      const fournisseur = await AdminModel.getFournisseurById(id);
+      if (!fournisseur) {
+        return res.redirect('/admin/fournisseurs?error=Fournisseur non trouvé');
+      }
+      res.render('layout_modern', { fournisseur, user: req.session.user, title: 'Supprimer Fournisseur', success: null, error: null });
+    } catch (error) {
+      console.error('Erreur lors de la confirmation de la suppression:', error);
+      res.redirect('/admin/fournisseurs?error=Erreur lors de la suppression');
+    }
+  }
+
+  // Delete fournisseur
+  static async deleteFournisseur(req, res) {
+    try {
+      const { id } = req.params;
+      await AdminModel.deleteFournisseur(id);
+      // Also remove associations
+      await db.execute('DELETE FROM fournisseur_matiere WHERE idfournisseur = ?', [id]);
+      res.redirect('/admin/fournisseurs?success=Fournisseur supprimé');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du fournisseur:', error);
+      res.redirect('/admin/fournisseurs?error=Erreur lors de la suppression');
+    }
+  }
+
+
 
   static async editUser(req, res) {
     try {

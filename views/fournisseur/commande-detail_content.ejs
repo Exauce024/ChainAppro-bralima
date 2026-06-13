@@ -52,19 +52,27 @@
         <p class="text-sm text-gray-500">Statut</p>
         <% 
         var badgeClass = 'bg-gray-100 text-gray-800';
+        var statusLabel = commande.statut || 'N/A';
         if (commande.statut === 'approuvee') { 
           badgeClass = 'bg-emerald-100 text-emerald-800'; 
+          statusLabel = 'Approuvée';
         } else if (commande.statut === 'refusee') { 
           badgeClass = 'bg-red-100 text-red-800'; 
+          statusLabel = 'Refusée';
         } else if (commande.statut === 'envoyee') { 
           badgeClass = 'bg-blue-100 text-blue-800'; 
+          statusLabel = 'Envoyée';
+        } else if (commande.statut === 'en_cours_de_livraison') { 
+          badgeClass = 'bg-amber-100 text-amber-800'; 
+          statusLabel = 'En cours de livraison (Expédiée)';
         } else if (commande.statut === 'livree') { 
           badgeClass = 'bg-green-100 text-green-800'; 
+          statusLabel = 'Livrée';
         }
         %>
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= badgeClass %>">
-          <span class="w-2 h-2 rounded-full <%= commande.statut === 'approuvee' ? 'bg-emerald-500' : commande.statut === 'refusee' ? 'bg-red-500' : commande.statut === 'envoyee' ? 'bg-blue-500' : commande.statut === 'livree' ? 'bg-green-500' : 'bg-gray-500' %> mr-2"></span>
-          <%= commande.statut || 'N/A' %>
+          <span class="w-2 h-2 rounded-full <%= commande.statut === 'approuvee' ? 'bg-emerald-500' : commande.statut === 'refusee' ? 'bg-red-500' : commande.statut === 'envoyee' ? 'bg-blue-500' : commande.statut === 'en_cours_de_livraison' ? 'bg-amber-500' : commande.statut === 'livree' ? 'bg-green-500' : 'bg-gray-500' %> mr-2"></span>
+          <%= statusLabel %>
         </span>
       </div>
       
@@ -168,14 +176,26 @@
           </div>
         <% } %>
         
+        <% if (commande.statut === 'en_cours_de_livraison' || commande.statut === 'livree') { %>
+          <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-truck text-amber-600 text-xs"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">En cours de livraison</p>
+              <p class="text-xs text-gray-500">Expédié par le fournisseur</p>
+            </div>
+          </div>
+        <% } %>
+        
         <% if (commande.statut === 'livree') { %>
           <div class="flex items-start space-x-3">
             <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-truck text-green-600 text-xs"></i>
+              <i class="fas fa-clipboard-check text-green-600 text-xs"></i>
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-900">Commande livrée</p>
-              <p class="text-xs text-gray-500">Livraison complétée</p>
+              <p class="text-sm font-medium text-gray-900">Commande livrée et réceptionnée</p>
+              <p class="text-xs text-gray-500">Réceptionnée à l'entrepôt</p>
             </div>
           </div>
         <% } %>
@@ -204,15 +224,20 @@
     <div class="space-x-4">
       <% if (['en_attente', 'approuvee', 'en_cours', 'envoyee'].includes(commande.statut)) { %>
         <form method="POST" action="/fournisseur/commande/<%= commande.idcommande %>/confirm-delivery" class="inline"
-          onsubmit="return confirm('Confirmer que cette commande a bien été livrée ?');">
-          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">
-            <i class="fas fa-check mr-2"></i>Confirmer la livraison
+          onsubmit="return confirm('Confirmer l\'expédition (départ de livraison) de cette commande ?');">
+          <button type="submit" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 font-semibold">
+            <i class="fas fa-truck mr-2"></i>Confirmer l'expédition
           </button>
         </form>
       <% } %>
+      <% if (commande.statut === 'en_cours_de_livraison') { %>
+        <span class="inline-flex items-center px-4 py-2 rounded-lg bg-amber-100 text-amber-800 font-medium">
+          <i class="fas fa-shipping-fast mr-2"></i>En cours de livraison
+        </span>
+      <% } %>
       <% if (commande.statut === 'livree') { %>
         <span class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-100 text-emerald-800 font-medium">
-          <i class="fas fa-check-circle mr-2"></i>Déjà livrée
+          <i class="fas fa-check-circle mr-2"></i>Livrée & Réceptionnée
         </span>
       <% } %>
       

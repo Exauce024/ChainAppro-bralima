@@ -63,7 +63,7 @@ class StockController {
                  f.raisonsocial AS fournisseur_nom
           FROM commande c
           LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur
-          WHERE c.statut IN ('approuvee', 'en_cours', 'livree', 'envoyee')
+          WHERE c.statut IN ('approuvee', 'en_cours', 'livree', 'envoyee', 'en_cours_de_livraison')
           ORDER BY c.datecreation DESC
         `
         )
@@ -182,6 +182,80 @@ class StockController {
       );
 
       await ReceptionModel.validerReception(idlignerec, iduser, quantiteRecue);
+
+      if (idcommande) {
+        // Mettre à jour qtelivrée dans lignecommande pour cette matière première
+        await db.execute(
+          `UPDATE lignecommande SET qtelivrée = COALESCE(qtelivrée, 0) + ? WHERE idcommande = ? AND idmp = ?`,
+          [quantiteRecue, idcommande, idmp]
+        );
+
+        // Créer une notification pour le gestionnaire concernant cette réception
+        try {
+          const NotificationModel = require('../models/notificationModel');
+          await NotificationModel.create({
+            role_libelle: 'gestionnaire',
+            titre: 'Réception de marchandise',
+            description: `Le magasinier a réceptionné ${quantiteRecue} unité(s) pour la commande n°${idcommande}.`
+          });
+        } catch (notifErr) {
+          console.error('Erreur notification réception (non bloquante):', notifErr);
+        }
+
+        // Vérifier si toutes les lignes de cette commande ont été entièrement livrées
+        const [lignes] = await db.execute(
+          `SELECT idmp, qtecommande, COALESCE(qtelivrée, 0) as qtelivree FROM lignecommande WHERE idcommande = ?`,
+          [idcommande]
+        );
+
+        const allDelivered = lignes.every(l => Number(l.qtelivree) >= Number(l.qtecommande));
+        if (allDelivered) {
+          // Si oui, on passe le statut de la commande à 'livree'
+          await db.execute(
+            `UPDATE commande SET statut = 'livree', motifrefus = NULL WHERE idcommande = ?`,
+            [idcommande]
+          );
+
+          // Générer le Bon de Livraison final (PDF)
+          try {
+            const { generateBonLivraisonPdf } = require('../utils/bonPdf');
+            await generateBonLivraisonPdf(idcommande);
+          } catch (pdfErr) {
+            console.error('Erreur PDF bon de livraison final (non bloquant):', pdfErr);
+          }
+
+          // Enregistrer dans le journal d'audit
+          try {
+            await db.execute(
+              `INSERT INTO logaudit (iduser, action, module, detaillson) 
+               VALUES (?, 'LIVRER_COMMANDE', 'COMMANDE', ?)`,
+              [
+                iduser,
+                `Commande ${idcommande} entièrement réceptionnée par le magasinier — statut changé à livrée`,
+              ]
+            );
+          } catch (auditErr) {
+            console.warn('Audit log livraison (non bloquant):', auditErr.message);
+          }
+
+          // Créer les notifications de livraison complétée
+          try {
+            const NotificationModel = require('../models/notificationModel');
+            await NotificationModel.create({
+              role_libelle: 'gestionnaire',
+              titre: 'Commande livrée et close',
+              description: `La commande n°${idcommande} a été entièrement livrée et réceptionnée.`
+            });
+            await NotificationModel.create({
+              role_libelle: 'fournisseur',
+              titre: 'Livraison réceptionnée',
+              description: `La livraison pour la commande n°${idcommande} a été entièrement réceptionnée et validée.`
+            });
+          } catch (notifErr) {
+            console.error('Erreur notification livraison finale (non bloquante):', notifErr);
+          }
+        }
+      }
 
       req.flash(
         'success',
