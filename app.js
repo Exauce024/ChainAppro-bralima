@@ -23,6 +23,8 @@ const app = express();
 
 // Sécurité
 app.use(helmet({
+  crossOriginOpenerPolicy: false,
+  originAgentCluster: false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -40,7 +42,7 @@ app.use(helmet({
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
       upgradeInsecureRequests: null, // Désactive l'upgrade automatique HTTP -> HTTPS (nécessaire pour l'accès IP brute)
     },
   },
