@@ -14,8 +14,8 @@ services:
     volumes:
       # Persistance des données MariaDB sur le VPS
       - mysql_data:/var/lib/mysql
-      # Initialisation automatique de la structure de la BDD
-      - ./data.sql:/docker-entrypoint-initdb.d/init.sql
+      # Initialisation automatique de la structure de la BDD à partir de gestionstocks.sql
+      - ./gestionstocks.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       # Port MySQL non exposé publiquement sur le VPS pour des raisons de sécurité.
       # L'application Node.js y accède en interne via le réseau Docker sur le port 3306.
