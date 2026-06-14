@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  # Service Base de Données MySQL
+  # Service Base de Données MariaDB (compatible MySQL, gère nativement le IF NOT EXISTS sur les index)
   db:
-    image: mysql:8.0
+    image: mariadb:10.11
     container_name: bralima-db-group
     restart: always
     environment:
@@ -12,7 +12,7 @@ services:
       MYSQL_USER: ${DB_USER:-bralima_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-bralima_pass_group}
     volumes:
-      # Persistance des données MySQL sur le VPS
+      # Persistance des données MariaDB sur le VPS
       - mysql_data:/var/lib/mysql
       # Initialisation automatique de la structure de la BDD
       - ./data.sql:/docker-entrypoint-initdb.d/init.sql
@@ -41,6 +41,7 @@ services:
       DB_USER: ${DB_USER:-bralima_user}
       DB_PASSWORD: ${DB_PASSWORD:-bralima_pass_group}
       DB_NAME: ${DB_NAME:-gestionstocks}
+      DB_SSL_DISABLE: ${DB_SSL_DISABLE:-true} # Transmet le flag de désactivation SSL au conteneur
       SESSION_SECRET: ${SESSION_SECRET:-bralima-super-secret-production-2026}
       BASE_URL: ${BASE_URL:-http://localhost:4001}
       EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
