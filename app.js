@@ -143,16 +143,10 @@ const PORT = parseInt(process.env.PORT, 10) || 4000;
 const HOST = process.env.IP || '::';
 
 function buildBaseUrl(port) {
-  try {
-    const url = new URL(process.env.BASE_URL || `http://localhost:${port}`);
-    if (url.hostname === '0.0.0.0') {
-      url.hostname = 'localhost';
-    }
-    url.port = String(port);
-    return url.toString().replace(/\/$/, '');
-  } catch (error) {
-    return `http://localhost:${port}`;
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL.replace(/\/$/, '');
   }
+  return `http://localhost:${port}`;
 }
 
 const server = app.listen(PORT, HOST, () => {
