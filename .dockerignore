@@ -1,8 +1,12 @@
 node_modules
-temp
-storage/bons/*.pdf
-.git
+npm-debug.log
 .env
+.git
+.gitignore
 .cursor
-*.log
-*.err
+*.md
+temp
+storage/bons/*
+tests
+*.sql
+*.js.map

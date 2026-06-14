@@ -1,45 +1,68 @@
 version: '3.8'
 
 services:
-  # 1. Base de données MySQL isolée pour votre application
+  # Service Base de Données MySQL
   db:
     image: mysql:8.0
-    container_name: bralima-db-exauce
+    container_name: bralima-db-group
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: gestionstocks
-    ports:
-      # Port MySQL externe (par défaut 3309 attribué pour éviter les conflits)
-      - "${DB_EXTERNAL_PORT:-3309}:3306"
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass_group}
+      MYSQL_DATABASE: ${DB_NAME:-gestionstocks}
+      MYSQL_USER: ${DB_USER:-bralima_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-bralima_pass_group}
     volumes:
-      - bralima_db_data_exauce:/var/lib/mysql
-      - ./gestionstocks.sql:/docker-entrypoint-initdb.d/init.sql
-
-  # 2. Application Web Node.js
-  app:
-    build: .
-    container_name: bralima-app-exauce
-    restart: always
+      # Persistance des données MySQL sur le VPS
+      - mysql_data:/var/lib/mysql
+      # Initialisation automatique de la structure de la BDD
+      - ./data.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      # Port Web externe (par défaut 8002 attribué redirigé vers 8000 dans le conteneur)
-      - "${APP_EXTERNAL_PORT:-8002}:8000"
-    environment:
-      - DB_HOST=db
-      - DB_USER=root
-      - DB_PASSWORD=rootpassword
-      - DB_NAME=gestionstocks
-      - PORT=8000
-      - SESSION_SECRET=bralima-super-secret-TFE
-      # Remplacez localhost par l'IP de votre serveur Contabo lors du déploiement
-      - BASE_URL=http://localhost:${APP_EXTERNAL_PORT:-8002}
-      - EMAIL_HOST=smtp.gmail.com
-      - EMAIL_PORT=587
-      - EMAIL_USER=exaucebanza04@gmail.com
-      - EMAIL_PASS=hdal bwys eojg mwjb
-      - NODE_ENV=production
+      # Port MySQL non exposé publiquement sur le VPS pour des raisons de sécurité.
+      # L'application Node.js y accède en interne via le réseau Docker sur le port 3306.
+      - "127.0.0.1:${DB_EXTERNAL_PORT:-3306}:3306"
+    networks:
+      - bralima-network
+
+  # Service Application Node.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bralima-app-group
+    restart: always
     depends_on:
       - db
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # Connexion à la BDD via le nom du service Docker "db"
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-bralima_user}
+      DB_PASSWORD: ${DB_PASSWORD:-bralima_pass_group}
+      DB_NAME: ${DB_NAME:-gestionstocks}
+      SESSION_SECRET: ${SESSION_SECRET:-bralima-super-secret-production-2026}
+      BASE_URL: ${BASE_URL:-http://localhost:4001}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USER: ${EMAIL_USER:-exaucebanza04@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-hdal bwys eojg mwjb}
+    ports:
+      # Port exposé sur la machine hôte (le VPS).
+      # Permet à chaque groupe de définir un port unique (ex: 4001, 4002, 4003, 4004) dans son fichier .env
+      - "${HOST_PORT:-4001}:4000"
+    volumes:
+      # Persistance des PDFs générés (Bons de commande, etc.)
+      - app_storage:/usr/src/app/storage
+    networks:
+      - bralima-network
 
 volumes:
-  bralima_db_data_exauce:
+  mysql_data:
+    driver: local
+  app_storage:
+    driver: local
+
+networks:
+  bralima-network:
+    driver: bridge

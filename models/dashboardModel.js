@@ -36,13 +36,14 @@ class DashboardModel {
   }
 
   static async getCommandesRecentes(limit = 10) {
+    const parsedLimit = parseInt(limit, 10) || 10;
     const [rows] = await db.execute(`
       SELECT c.idcommande, c.reference, c.statut, c.datecreation, f.raisonsocial
       FROM commande c
       LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur
       ORDER BY c.datecreation DESC
-      LIMIT ?
-    `, [limit]);
+      LIMIT ${parsedLimit}
+    `);
     return rows;
   }
 

@@ -98,13 +98,14 @@ class AdminModel {
   }
 
   static async getAuditLogs(limit = 100) {
+    const parsedLimit = parseInt(limit, 10) || 100;
     const [logs] = await db.execute(`
       SELECT l.*, u.nom, u.prenom 
       FROM logaudit l 
       LEFT JOIN users u ON l.iduser = u.idusers 
       ORDER BY l.horodatage DESC 
-      LIMIT ?
-    `, [limit]);
+      LIMIT ${parsedLimit}
+    `);
     return logs;
   }
 

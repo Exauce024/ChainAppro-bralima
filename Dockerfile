@@ -1,20 +1,25 @@
-# 1. On utilise une image officielle de Node.js (version 20)
 FROM node:20-alpine
 
-# 2. On définit le dossier de travail dans le conteneur
-WORKDIR /app
+# Définir le répertoire de travail dans le conteneur
+WORKDIR /usr/src/app
 
-# 3. On copie package.json et package-lock.json pour installer les dépendances
+# Copier les fichiers de dépendances
 COPY package*.json ./
 
-# 4. On installe uniquement les dépendances nécessaires à la production
-RUN npm install --only=production
+# Installer uniquement les dépendances de production
+RUN npm ci --only=production
 
-# 5. On copie tout le reste des fichiers du projet (à l'exclusion de ceux dans .dockerignore s'il existe)
+# Copier le reste du code source
 COPY . .
 
-# 6. On indique que l'application tourne sur le port 8000 à l'intérieur du conteneur
-EXPOSE 8000
+# Créer le dossier de stockage pour les PDFs et s'assurer que Node a les droits
+RUN mkdir -p storage/bons && chown -R node:node /usr/src/app
 
-# 7. La commande pour démarrer l'application
+# Exposer le port interne de l'application
+EXPOSE 4000
+
+# Utiliser l'utilisateur non-root par défaut de l'image Node pour la sécurité
+USER node
+
+# Commande de démarrage de l'application
 CMD ["node", "app.js"]

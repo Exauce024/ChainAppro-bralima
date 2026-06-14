@@ -199,6 +199,7 @@ class StockModel {
   }
 
   static async getRecentMouvements(limit = 10) {
+    const parsedLimit = parseInt(limit, 10) || 10;
     const [rows] = await db.execute(
       `
       SELECT
@@ -220,9 +221,8 @@ class StockModel {
       INNER JOIN entrepôt e ON s.identret = e.identret
       LEFT JOIN users u ON m.iduser = u.idusers
       ORDER BY m.date_mouvement DESC
-      LIMIT ?
-    `,
-      [limit]
+      LIMIT ${parsedLimit}
+    `
     );
     return rows;
   }
