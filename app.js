@@ -41,6 +41,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "blob:"],
       connectSrc: ["'self'"],
+      upgradeInsecureRequests: null, // Désactive l'upgrade automatique HTTP -> HTTPS (nécessaire pour l'accès IP brute)
     },
   },
 }));
