@@ -139,8 +139,15 @@
 </head>
 <body class="bg-gray-light">
   <div class="flex h-screen">
+    <!-- Sidebar Backdrop for Mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 hidden md:hidden"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-primary text-white flex flex-col">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-primary text-white flex flex-col shadow-xl transform -translate-x-full md:translate-x-0 md:relative transition-transform duration-300 ease-in-out">
+      <!-- Mobile Close Button -->
+      <button id="menu-close" class="md:hidden text-white/80 hover:text-white absolute top-4 right-4 focus:outline-none">
+        <i class="fas fa-times text-xl"></i>
+      </button>
       <!-- Logo -->
       <div class="p-6 border-b border-white/10">
         <div class="flex items-center">
@@ -260,10 +267,16 @@
     <main class="flex-1 overflow-y-auto">
       <!-- Header -->
       <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="px-6 py-4 flex justify-between items-center">
-          <div>
-            <h2 class="text-xl font-semibold text-gray-800"><%= title || 'Tableau de bord' %></h2>
-            <p class="text-sm text-gray-500">Bienvenue sur votre espace de travail</p>
+        <div class="px-4 md:px-6 py-4 flex justify-between items-center">
+          <div class="flex items-center">
+            <!-- Mobile Hamburger Menu Button -->
+            <button id="menu-toggle" class="md:hidden text-gray-600 hover:text-gray-800 focus:outline-none p-2 mr-2">
+              <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div>
+              <h2 class="text-lg md:text-xl font-semibold text-gray-800"><%= title || 'Tableau de bord' %></h2>
+              <p class="text-xs md:text-sm text-gray-500">Bienvenue sur votre espace de travail</p>
+            </div>
           </div>
           
           <!-- Profile Section -->
@@ -291,7 +304,7 @@
             
             <!-- Profile Menu -->
             <div class="flex items-center space-x-3">
-              <div class="text-right">
+              <div class="text-right hidden sm:block">
                 <p class="text-sm font-medium text-gray-800">
                   <%= user ? (user.prenom && user.nom ? user.prenom + ' ' + user.nom : user.nom || 'Utilisateur') : 'Invité' %>
                 </p>
@@ -607,6 +620,35 @@
 
       // Charger au chargement de la page pour le badge rouge initial
       loadNotifications();
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuToggle = document.getElementById('menu-toggle');
+      const menuClose = document.getElementById('menu-close');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+
+      if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function() {
+          sidebar.classList.remove('-translate-x-full');
+          if (overlay) overlay.classList.remove('hidden');
+        });
+      }
+
+      if (menuClose && sidebar) {
+        menuClose.addEventListener('click', function() {
+          sidebar.classList.add('-translate-x-full');
+          if (overlay) overlay.classList.add('hidden');
+        });
+      }
+
+      if (overlay && sidebar) {
+        overlay.addEventListener('click', function() {
+          sidebar.classList.add('-translate-x-full');
+          overlay.classList.add('hidden');
+        });
+      }
     });
   </script>
 </body>
