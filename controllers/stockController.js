@@ -152,7 +152,7 @@ class StockController {
         iduser,
       });
 
-      let stock = await StockModel.findByMpAndEntrepot(idmp, identret);
+      let stock = await StockModel.findByMpAndEntrepotAndLot(idmp, identret, lotnumero || null);
       if (!stock) {
         const [result] = await db.execute(
           `INSERT INTO stock (idmp, identret, lotnumero, dateperemption, qtedisponible)
@@ -160,11 +160,11 @@ class StockController {
           [idmp, identret, lotnumero || null, dateperemption || null]
         );
         stock = { idstock: result.insertId };
-      } else if (lotnumero || dateperemption) {
+      } else if (dateperemption) {
         await db.execute(
-          `UPDATE stock SET lotnumero = COALESCE(?, lotnumero), dateperemption = COALESCE(?, dateperemption)
+          `UPDATE stock SET dateperemption = COALESCE(dateperemption, ?)
            WHERE idstock = ?`,
-          [lotnumero || null, dateperemption || null, stock.idstock]
+          [dateperemption || null, stock.idstock]
         );
       }
 
@@ -450,7 +450,7 @@ class StockController {
         return res.redirect('/magasinier/mouvements/transfert');
       }
 
-      const dstLine = await StockModel.ensureStockLine(src.idmp, identret_dest);
+      const dstLine = await StockModel.ensureStockLine(src.idmp, identret_dest, src.lotnumero, src.dateperemption);
 
       await StockModel.executeTransfer({
         idstockSource: src.idstock,

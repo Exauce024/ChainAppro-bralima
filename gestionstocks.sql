@@ -819,7 +819,7 @@ ALTER TABLE `role`
 --
 ALTER TABLE `stock`
   ADD PRIMARY KEY (`idstock`),
-  ADD UNIQUE KEY `unique_mp_entrepot` (`idmp`,`identret`),
+  ADD UNIQUE KEY `unique_mp_entrepot_lot` (`idmp`,`identret`,`lotnumero`),
   ADD KEY `identret` (`identret`),
   ADD KEY `idlignerec` (`idlignerec`),
   ADD KEY `idx_stock_mp` (`idmp`);

@@ -26,11 +26,13 @@ class DashboardModel {
 
   static async getStockCritique() {
     const [stocks] = await db.execute(`
-      SELECT s.*, mp.libellé, mp.seuilcritique, mp.seuilalerte
+      SELECT s.idstock, s.idmp, s.identret, SUM(s.qtedisponible) AS qtedisponible,
+             mp.libellé, mp.seuilcritique, mp.seuilalerte
       FROM stock s
       JOIN matièrepremiere mp ON s.idmp = mp.idmp
-      WHERE s.qtedisponible <= mp.seuilalerte
-      ORDER BY s.qtedisponible ASC
+      GROUP BY s.idmp, s.identret
+      HAVING SUM(s.qtedisponible) <= mp.seuilalerte
+      ORDER BY qtedisponible ASC
     `);
     return stocks;
   }

@@ -56,13 +56,17 @@ class StockModel {
     }
   }
 
-  static async findByMpAndEntrepot(idmp, identret, connection = null) {
+  static async findByMpAndEntrepotAndLot(idmp, identret, lotnumero, connection = null) {
     const executor = connection || db;
     const [rows] = await executor.execute(
-      `SELECT * FROM stock WHERE idmp = ? AND identret = ?`,
-      [idmp, identret]
+      `SELECT * FROM stock WHERE idmp = ? AND identret = ? AND (lotnumero = ? OR (lotnumero IS NULL AND ? IS NULL))`,
+      [idmp, identret, lotnumero, lotnumero]
     );
     return rows[0];
+  }
+
+  static async findByMpAndEntrepot(idmp, identret, connection = null) {
+    return StockModel.findByMpAndEntrepotAndLot(idmp, identret, null, connection);
   }
 
   static async getDefaultEntrepotId(connection = null) {
@@ -446,24 +450,40 @@ class StockModel {
 
   static async listStockLinesDetailed() {
     const [rows] = await db.execute(`
-      SELECT s.idstock, s.idmp, s.identret, s.qtedisponible,
+      SELECT s.idstock, s.idmp, s.identret, s.qtedisponible, s.lotnumero, s.dateperemption, s.datemaj,
              mp.libellé AS libelle, mp.codebarre,
              e.nom AS entrepot_nom
       FROM stock s
       INNER JOIN matièrepremiere mp ON s.idmp = mp.idmp
       INNER JOIN entrepôt e ON s.identret = e.identret
-      ORDER BY mp.libellé ASC, e.nom ASC
+      ORDER BY mp.libellé ASC, s.dateperemption ASC, s.datemaj ASC
     `);
     return rows;
   }
 
-  static async ensureStockLine(idmp, identret, connection = null) {
-    let row = await StockModel.findByMpAndEntrepot(idmp, identret, connection);
+  static async ensureStockLine(idmp, identret, lotnumero = null, dateperemption = null, connection = null) {
+    let row = await StockModel.findByMpAndEntrepotAndLot(idmp, identret, lotnumero, connection);
     if (row) return row;
     const exec = connection || db;
-    await exec.execute(`INSERT INTO stock (idmp, identret, qtedisponible) VALUES (?, ?, 0)`, [idmp, identret]);
-    row = await StockModel.findByMpAndEntrepot(idmp, identret, connection);
+    await exec.execute(
+      `INSERT INTO stock (idmp, identret, lotnumero, dateperemption, qtedisponible) VALUES (?, ?, ?, ?, 0)`,
+      [idmp, identret, lotnumero, dateperemption]
+    );
+    row = await StockModel.findByMpAndEntrepotAndLot(idmp, identret, lotnumero, connection);
     return row;
+  }
+
+  static async findStockLinesByMp(idmp) {
+    const [rows] = await db.execute(`
+      SELECT s.*, mp.libellé, mp.description, mp.seuilcritique, mp.seuilalerte,
+             e.nom AS entrepot_nom
+      FROM stock s
+      JOIN matièrepremiere mp ON s.idmp = mp.idmp
+      JOIN entrepôt e ON s.identret = e.identret
+      WHERE s.idmp = ?
+      ORDER BY s.dateperemption ASC, s.datemaj ASC
+    `, [idmp]);
+    return rows;
   }
 }
 

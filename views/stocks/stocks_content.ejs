@@ -115,7 +115,15 @@
                   </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-gray-900"><%= stock.libellé || 'Non défini' %></div>
-                    <div class="text-sm text-gray-500"><%= stock.description || '' %></div>
+                    <div class="text-xs text-gray-500 flex flex-wrap gap-2 items-center mt-0.5">
+                      <span><%= stock.description || '' %></span>
+                      <% if (stock.lotnumero) { %>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Lot: <%= stock.lotnumero %></span>
+                      <% } %>
+                      <% if (stock.dateperemption) { %>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Exp: <%= new Date(stock.dateperemption).toLocaleDateString('fr-FR') %></span>
+                      <% } %>
+                    </div>
                   </div>
                 </div>
               </td>

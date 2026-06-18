@@ -21,7 +21,9 @@
                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
           <option value="">— Sélectionner —</option>
           <% (lignesStock || []).forEach(function(l) { %>
-            <option value="<%= l.idstock %>" data-identret="<%= l.identret %>"><%= l.libelle %> · <%= l.entrepot_nom %> · <%= Number(l.qtedisponible || 0).toLocaleString('fr-FR') %> u.</option>
+            <option value="<%= l.idstock %>" data-identret="<%= l.identret %>">
+              <%= l.libelle %> · <%= l.entrepot_nom %> · Lot: <%= l.lotnumero || 'N/A' %> <% if (l.dateperemption) { %>(Périm: <%= new Date(l.dateperemption).toLocaleDateString('fr-FR') %>)<% } %> · <%= Number(l.qtedisponible || 0).toLocaleString('fr-FR') %> u.
+            </option>
           <% }); %>
         </select>
       </div>

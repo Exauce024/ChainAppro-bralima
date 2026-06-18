@@ -8,12 +8,20 @@ class GestionnaireStockController {
       const stocks = await StockModel.findAllWithDetails();
       const matieres = await MatierePremiereModel.findAll();
       
-      // Calculer les statistiques
+      // Group stocks by idmp to calculate total available per raw material
+      const mpStocksMap = {};
+      stocks.forEach(s => {
+        mpStocksMap[s.idmp] = (mpStocksMap[s.idmp] || 0) + (Number(s.qtedisponible) || 0);
+      });
+
       const stats = {
         totalMatierePremieres: matieres.length,
         stockTotal: stocks.reduce((sum, stock) => sum + (stock.qtedisponible || 0), 0),
-        stockCritique: stocks.filter(stock => stock.qtedisponible <= stock.seuilcritique).length,
-        stockAlerte: stocks.filter(stock => stock.qtedisponible <= stock.seuilalerte && stock.qtedisponible > stock.seuilcritique).length,
+        stockCritique: matieres.filter(m => (mpStocksMap[m.idmp] || 0) <= Number(m.seuilcritique || 5)).length,
+        stockAlerte: matieres.filter(m => {
+          const qte = mpStocksMap[m.idmp] || 0;
+          return qte <= Number(m.seuilalerte || 10) && qte > Number(m.seuilcritique || 5);
+        }).length,
         valeurTotale: 0 // Prix unitaire non disponible
       };
 
@@ -44,31 +52,50 @@ class GestionnaireStockController {
   static async showStockDetails(req, res) {
     try {
       const { id } = req.params;
-      console.log(` Recherche du stock avec ID: ${id}`);
+      console.log(` Recherche des lignes de stock pour la matière ID: ${id}`);
       
-      const stock = await StockModel.findByIdWithDetails(id);
-      console.log(` Résultat findByIdWithDetails: ${stock ? 'TROUVÉ' : 'NON TROUVÉ'}`);
+      const stockLines = await StockModel.findStockLinesByMp(id);
       
-      if (!stock) {
-        console.log(' Stock non trouvé, redirection vers la liste');
-        return res.redirect('/gestionnaire/stocks?error=Stock non trouvé');
+      if (stockLines.length === 0) {
+        const matiere = await MatierePremiereModel.findById(id);
+        if (!matiere) {
+          return res.redirect('/gestionnaire/stocks?error=Stock non trouvé');
+        }
+        const stock = {
+          idstock: null,
+          idmp: matiere.idmp,
+          libellé: matiere.libellé,
+          description: matiere.description,
+          seuilcritique: matiere.seuilcritique,
+          seuilalerte: matiere.seuilalerte,
+          qtedisponible: 0,
+        };
+        return res.render('layout_modern', { 
+          stock, 
+          lots: [],
+          mouvements: [],
+          user: req.session.user, 
+          title: `Détails du Stock - ${stock.libellé}`,
+          success: req.query.success || null,
+          error: req.query.error || null
+        });
       }
 
-      // Si pas de stock, créer un objet avec les infos de la matière première
-      if (!stock.idstock) {
-        console.log(' Création d un objet stock avec les infos de la matière première');
-        stock.idstock = null;
-        stock.qtedisponible = 0;
-        stock.datemiseajour = new Date();
-      }
+      const stock = {
+        idstock: stockLines[0].idstock,
+        idmp: stockLines[0].idmp,
+        libellé: stockLines[0].libellé,
+        description: stockLines[0].description,
+        seuilcritique: stockLines[0].seuilcritique,
+        seuilalerte: stockLines[0].seuilalerte,
+        qtedisponible: stockLines.reduce((sum, s) => sum + (Number(s.qtedisponible) || 0), 0),
+      };
 
-      // Pas d'historique des mouvements (table mouvementstock n'existe pas)
       const mouvements = [];
-
-      console.log(` Rendu du template avec title: "Détails du Stock - ${stock.libellé}"`);
       
       res.render('layout_modern', { 
         stock, 
+        lots: stockLines,
         mouvements,
         user: req.session.user, 
         title: `Détails du Stock - ${stock.libellé}`,
@@ -85,16 +112,30 @@ class GestionnaireStockController {
     try {
       const stocks = await StockModel.findAllWithDetails();
       
+      const mpStocksMap = {};
+      stocks.forEach(s => {
+        mpStocksMap[s.idmp] = (mpStocksMap[s.idmp] || 0) + (Number(s.qtedisponible) || 0);
+      });
+
+      const matieres = await MatierePremiereModel.findAll();
+
+      const normalCount = matieres.filter(m => (mpStocksMap[m.idmp] || 0) > Number(m.seuilalerte || 10)).length;
+      const alerteCount = matieres.filter(m => {
+        const qte = mpStocksMap[m.idmp] || 0;
+        return qte <= Number(m.seuilalerte || 10) && qte > Number(m.seuilcritique || 5);
+      }).length;
+      const critiqueCount = matieres.filter(m => (mpStocksMap[m.idmp] || 0) <= Number(m.seuilcritique || 5)).length;
+
       const stats = {
-        totalStocks: stocks.length,
+        totalStocks: matieres.length,
         stockTotal: stocks.reduce((sum, stock) => sum + (stock.qtedisponible || 0), 0),
-        stockCritique: stocks.filter(stock => stock.qtedisponible <= stock.seuilcritique).length,
-        stockAlerte: stocks.filter(stock => stock.qtedisponible <= stock.seuilalerte && stock.qtedisponible > stock.seuilcritique).length,
+        stockCritique: critiqueCount,
+        stockAlerte: alerteCount,
         valeurTotale: stocks.reduce((sum, stock) => sum + (stock.qtedisponible || 0) * (stock.prixunitaire || 0), 0),
         stocksParStatut: {
-          normal: stocks.filter(stock => stock.qtedisponible > stock.seuilalerte).length,
-          alerte: stocks.filter(stock => stock.qtedisponible <= stock.seuilalerte && stock.qtedisponible > stock.seuilcritique).length,
-          critique: stocks.filter(stock => stock.qtedisponible <= stock.seuilcritique).length
+          normal: normalCount,
+          alerte: alerteCount,
+          critique: critiqueCount
         }
       };
 
