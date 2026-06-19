@@ -58,28 +58,39 @@
   <div class="bg-white rounded-lg shadow p-4">
     <div class="flex flex-wrap gap-4 items-end">
       <div class="flex-1 min-w-[200px]">
-        <input type="text" placeholder="Rechercher une commande..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" id="commandeSearch" placeholder="Rechercher une commande..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
       <div class="flex-1 min-w-[200px]">
-        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="filterStatut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Tous les statuts</option>
           <option value="en_attente">En attente</option>
           <option value="approuvee">Approuvée</option>
           <option value="en_cours">En cours</option>
+          <option value="en_cours_de_livraison">En cours de livraison</option>
           <option value="livree">Livrée</option>
+          <option value="refusee">Refusée</option>
         </select>
       </div>
       <div class="flex-1 min-w-[200px]">
-        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="filterFournisseur" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Tous les fournisseurs</option>
-          <% commandes.forEach(function(commande) { %>
-            <% if (commande.raisonsocial) { %>
-              <option value="<%= commande.idfournisseur %>"><%= commande.raisonsocial %></option>
-            <% } %>
+          <% 
+          const uniqueSuppliers = [];
+          const seenSupplierIds = new Set();
+          commandes.forEach(function(c) {
+            if (c.idfournisseur && c.raisonsocial && !seenSupplierIds.has(c.idfournisseur)) {
+              seenSupplierIds.add(c.idfournisseur);
+              uniqueSuppliers.push({ id: c.idfournisseur, name: c.raisonsocial });
+            }
+          });
+          uniqueSuppliers.sort((a, b) => a.name.localeCompare(b.name));
+          %>
+          <% uniqueSuppliers.forEach(function(s) { %>
+            <option value="<%= s.id %>"><%= s.name %></option>
           <% }); %>
         </select>
       </div>
-      <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+      <button id="btnFiltrer" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
         <i class="fas fa-search mr-2"></i>Filtrer
       </button>
     </div>
@@ -91,10 +102,10 @@
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-medium text-gray-900">Liste des commandes</h2>
         <div class="flex space-x-2">
-          <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          <button id="btnExporter" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
             <i class="fas fa-download mr-2"></i>Exporter
           </button>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <button id="btnImprimer" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
             <i class="fas fa-print mr-2"></i>Imprimer
           </button>
         </div>
@@ -114,7 +125,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <% commandes.forEach(function(commande) { %>
-            <tr class="hover:bg-gray-50">
+            <tr class="hover:bg-gray-50 commande-row" data-idfournisseur="<%= commande.idfournisseur %>" data-statut="<%= commande.statut %>">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">
                   <a href="/commandes/<%= commande.idcommande %>" class="text-blue-600 hover:text-blue-800">
@@ -210,30 +221,31 @@
 <script>
 // Filtrage des commandes
 document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.querySelector('input[placeholder="Rechercher une commande..."]');
-  const statusSelect = document.querySelectorAll('select')[0];
-  const fournisseurSelect = document.querySelectorAll('select')[1];
-  const filterButton = document.querySelector('button:has(.fa-search)');
-  const exportButton = document.querySelector('button:has(.fa-download)');
-  const printButton = document.querySelector('button:has(.fa-print)');
-  const tableRows = document.querySelectorAll('tbody tr');
+  const searchInput = document.getElementById('commandeSearch');
+  const statusSelect = document.getElementById('filterStatut');
+  const fournisseurSelect = document.getElementById('filterFournisseur');
+  const filterButton = document.getElementById('btnFiltrer');
+  const exportButton = document.getElementById('btnExporter');
+  const printButton = document.getElementById('btnImprimer');
+  const tableRows = document.querySelectorAll('.commande-row');
 
   // Fonction de filtrage
   function filterCommandes() {
-    const searchTerm = searchInput.value.toLowerCase();
+    const searchTerm = searchInput.value.toLowerCase().trim();
     const statusFilter = statusSelect.value;
     const fournisseurFilter = fournisseurSelect.value;
 
     tableRows.forEach(row => {
-      const reference = row.cells[0].textContent.toLowerCase();
-      const fournisseur = row.cells[1].textContent.toLowerCase();
-      const statut = row.cells[4].textContent.toLowerCase().trim();
+      const reference = row.cells[0].textContent.toLowerCase().trim();
+      const fournisseur = row.cells[1].textContent.toLowerCase().trim();
+      const statutAttr = row.getAttribute('data-statut') || '';
+      const idfournisseurAttr = row.getAttribute('data-idfournisseur') || '';
       
-      const matchesSearch = reference.includes(searchTerm) || 
-                          fournisseur.includes(searchTerm);
-      const matchesStatus = !statusFilter || statut.includes(statusFilter.toLowerCase());
-      const matchesFournisseur = !fournisseurFilter || 
-                               row.querySelector(`option[value="${fournisseurFilter}"]`) !== null;
+      const matchesSearch = !searchTerm || 
+                            reference.includes(searchTerm) || 
+                            fournisseur.includes(searchTerm);
+      const matchesStatus = !statusFilter || statutAttr === statusFilter;
+      const matchesFournisseur = !fournisseurFilter || idfournisseurAttr === fournisseurFilter;
 
       if (matchesSearch && matchesStatus && matchesFournisseur) {
         row.style.display = '';
@@ -251,7 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const visibleRows = Array.from(tableRows).filter(row => row.style.display !== 'none');
     const countElement = document.querySelector('p.text-sm.text-gray-700');
     if (countElement) {
-      countElement.innerHTML = `Affichage de <span class="font-medium">1</span> à <span class="font-medium">${visibleRows.length}</span> sur <span class="font-medium">${tableRows.length}</span> résultats`;
+      const start = visibleRows.length > 0 ? 1 : 0;
+      countElement.innerHTML = `Affichage de <span class="font-medium">${start}</span> à <span class="font-medium">${visibleRows.length}</span> sur <span class="font-medium">${tableRows.length}</span> résultats`;
     }
   }
 
