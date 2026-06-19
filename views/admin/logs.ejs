@@ -299,7 +299,7 @@ function updateLogsTable(logs) {
 // Export to CSV function
 function exportCSV() {
   const logs = logsData;
-  let csv = 'ID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
+  let csv = '\uFEFFID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
   
   logs.forEach(function(log) {
     csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.ip_address || ''}","${log.detaillson.replace(/"/g, '""')}"\n`;
@@ -334,7 +334,7 @@ function viewLogDetails(logId) {
 function exportSingleLog(logId) {
   const log = logsData.find(l => l.idlogaudit == logId);
   if (log) {
-    let csv = 'ID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
+    let csv = '\uFEFFID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
     csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.ip_address || ''}","${log.detaillson.replace(/"/g, '""')}"`;
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

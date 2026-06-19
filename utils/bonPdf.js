@@ -41,33 +41,52 @@ function pipeDocToFile(doc, filePath) {
   });
 }
 
-function drawTitleBlock(doc, title) {
-  doc.fontSize(16).font('Helvetica-Bold').text(title, { align: 'center' });
-  doc.moveDown(0.4);
-  doc.fontSize(9).font('Helvetica').fillColor('#444444').text('BRALIMA Supply Chain', { align: 'center' });
-  doc.fillColor('#000000');
-  doc.moveDown(1.2);
+function drawHeaderBlock(doc, title, themeColor = '#1e3a8a') {
+  const logoPath = path.join(__dirname, '..', 'public', 'images', 'bralima-logo.png');
+  if (fs.existsSync(logoPath)) {
+    doc.image(logoPath, 50, 40, { width: 75 });
+  }
+  
+  // Title and company info on the right
+  doc.fontSize(16).font('Helvetica-Bold').fillColor(themeColor).text(title, 50, 42, { align: 'right' });
+  doc.fontSize(9).font('Helvetica').fillColor('#475569').text('BRALIMA S.A. — Supply Chain Département', 50, 62, { align: 'right' });
+  doc.fontSize(8).font('Helvetica-Oblique').fillColor('#64748b').text('Système automatisé de suivi des approvisionnements', 50, 74, { align: 'right' });
+  
+  // Separator line
+  doc.moveTo(50, 95).lineTo(545, 95).lineWidth(1.5).stroke('#e2e8f0');
+  
+  // Reset cursor position
+  doc.y = 115;
+  doc.x = 50;
+  doc.fillColor('#000000').font('Helvetica');
 }
 
-function drawLigneTable(doc, lignes, { qtyKey, title }) {
+function drawLigneTable(doc, lignes, { qtyKey, title, themeColor = '#1e3a8a' }) {
   const tableTop = doc.y;
   const x1 = 50;
   const x2 = 270;
   const x3 = 350;
   const x4 = 460;
-  doc.fontSize(10).font('Helvetica-Bold').text(title, x1, tableTop);
+  
+  doc.fontSize(10).font('Helvetica-Bold').fillColor(themeColor).text(title, x1, tableTop);
   doc.moveDown(0.6);
 
   let y = doc.y + 6;
+  
+  // Shaded header background
+  doc.rect(x1, y - 4, 495, 20).fill('#f8fafc');
+  doc.fillColor('#1e293b'); // Dark slate text color for headers
+  
   doc.fontSize(9).font('Helvetica-Bold');
-  doc.text('Article', x1, y);
+  doc.text('Article', x1 + 5, y);
   doc.text(qtyKey === 'qtelivrée' ? 'Qté livrée' : 'Qté commandée', x2, y);
   doc.text('Prix unit.', x3, y);
   doc.text('Total ligne', x4, y);
-  y += 16;
+  y += 20;
 
-  doc.moveTo(x1, y - 4).lineTo(535, y - 4).stroke('#cccccc');
-  doc.font('Helvetica');
+  // Thin line below header
+  doc.moveTo(x1, y - 4).lineTo(545, y - 4).lineWidth(1).stroke('#e2e8f0');
+  doc.font('Helvetica').fillColor('#334155'); // Dark gray text color for rows
 
   for (const ligne of lignes) {
     const q = Number(qtyKey === 'qtelivrée' ? ligne.qtelivrée ?? ligne.qtecommande : ligne.qtecommande) || 0;
@@ -75,18 +94,23 @@ function drawLigneTable(doc, lignes, { qtyKey, title }) {
     const lineTotal = q * pu;
 
     const label = ligne.libelle || ligne.description || `MP #${ligne.idmp}`;
-    doc.text(label.substring(0, 48), x1, y, { width: x2 - x1 - 8 });
+    doc.text(label.substring(0, 48), x1 + 5, y, { width: x2 - x1 - 15 });
     doc.text(String(q), x2, y);
     doc.text(formatMoney(pu), x3, y);
     doc.text(formatMoney(lineTotal), x4, y);
-    y += 18;
-    if (y > doc.page.height - 100) {
+    y += 20;
+    
+    // Line under each row
+    doc.moveTo(x1, y - 4).lineTo(545, y - 4).lineWidth(0.5).stroke('#f1f5f9');
+    
+    if (y > doc.page.height - 120) {
       doc.addPage();
       y = 50;
     }
   }
 
   doc.y = y + 8;
+  doc.fillColor('#000000').font('Helvetica');
 }
 
 /**
@@ -110,24 +134,39 @@ async function generateBonCommandePdf(idcommande) {
     },
   });
 
-  drawTitleBlock(doc, 'BON DE COMMANDE');
+  drawHeaderBlock(doc, 'BON DE COMMANDE', '#1e3a8a');
 
-  doc.fontSize(10).font('Helvetica');
-  doc.text(`N° commande interne : ${commande.idcommande}`);
+  const startY = doc.y;
+  // Left Column - Order details
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#1e3a8a').text('INFORMATIONS COMMANDE', 50, startY);
+  doc.font('Helvetica').fillColor('#334155');
+  doc.moveDown(0.4);
+  doc.text(`N° Interne : ${commande.idcommande}`);
   doc.text(`Référence : ${commande.reference || '—'}`);
-  doc.text(`Fournisseur : ${commande.raisonsocial || '—'}`);
-  doc.text(`Date de création : ${formatFrenchDate(commande.datecreation)}`);
+  doc.text(`Date émission : ${formatFrenchDate(commande.datecreation)}`);
   if (commande.deleidellivraison) {
-    doc.text(`Délai / livraison souhaité : ${String(commande.deleidellivraison)}`);
+    doc.text(`Livraison souhaitée : ${formatFrenchDate(commande.deleidellivraison)}`);
   }
-  doc.moveDown();
+  
+  // Right Column - Supplier details
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#1e3a8a').text('FOURNISSEUR', 300, startY);
+  doc.font('Helvetica').fillColor('#334155');
+  doc.moveDown(0.4);
+  doc.text(`Nom : ${commande.raisonsocial || '—'}`);
+  if (commande.contact_nom) doc.text(`Contact : ${commande.contact_nom}`);
+  if (commande.telephone) doc.text(`Téléphone : ${commande.telephone}`);
+  if (commande.email) doc.text(`Email : ${commande.email}`);
+  
+  doc.y = Math.max(doc.y, startY + 80);
+  doc.x = 50;
+  doc.moveDown(1.5);
 
-  drawLigneTable(doc, lignes, { qtyKey: 'qtecommande', title: 'Détail des lignes' });
+  drawLigneTable(doc, lignes, { qtyKey: 'qtecommande', title: 'Détail des lignes', themeColor: '#1e3a8a' });
 
-  doc.font('Helvetica-Bold').fontSize(11).text(`Total : ${formatMoney(montantTotal)}`, { align: 'right' });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#1e3a8a').text(`Total : ${formatMoney(montantTotal)}`, { align: 'right' });
   doc.moveDown(2);
-  doc.fontSize(8).font('Helvetica').fillColor('#666666');
-  doc.text('Document émis automatiquement à la création de la commande.', { align: 'left' });
+  doc.fontSize(8).font('Helvetica').fillColor('#64748b');
+  doc.text('Document émis automatiquement à la création de la commande par le système BRALIMA Supply Chain.', { align: 'left' });
   doc.fillColor('#000000');
 
   await pipeDocToFile(doc, outPath);
@@ -164,24 +203,37 @@ async function generateBonLivraisonPdf(idcommande) {
     },
   });
 
-  drawTitleBlock(doc, 'BON DE LIVRAISON');
+  drawHeaderBlock(doc, 'BON DE LIVRAISON', '#10b981');
 
-  doc.fontSize(10).font('Helvetica');
-  doc.text(`N° commande : ${commande.idcommande}`);
+  const startY = doc.y;
+  // Left Column - Delivery details
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#10b981').text('INFORMATIONS LIVRAISON', 50, startY);
+  doc.font('Helvetica').fillColor('#334155');
+  doc.moveDown(0.4);
+  doc.text(`N° Commande : ${commande.idcommande}`);
   doc.text(`Référence : ${commande.reference || '—'}`);
-  doc.text(`Fournisseur : ${commande.raisonsocial || '—'}`);
-  doc.text(`Date BL : ${formatFrenchDate(new Date())}`);
-  doc.text(`Commande créée le : ${formatFrenchDate(commande.datecreation)}`);
-  doc.moveDown();
+  doc.text(`Date Réception : ${formatFrenchDate(new Date())}`);
+  doc.text(`Date Commande : ${formatFrenchDate(commande.datecreation)}`);
+  
+  // Right Column - Supplier details
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#10b981').text('FOURNISSEUR', 300, startY);
+  doc.font('Helvetica').fillColor('#334155');
+  doc.moveDown(0.4);
+  doc.text(`Nom : ${commande.raisonsocial || '—'}`);
+  if (commande.contact_nom) doc.text(`Contact : ${commande.contact_nom}`);
+  if (commande.telephone) doc.text(`Téléphone : ${commande.telephone}`);
+  if (commande.email) doc.text(`Email : ${commande.email}`);
+  
+  doc.y = Math.max(doc.y, startY + 80);
+  doc.x = 50;
+  doc.moveDown(1.5);
 
-  drawLigneTable(doc, lignes, { qtyKey: 'qtelivrée', title: 'Marchandises livrées' });
+  drawLigneTable(doc, lignes, { qtyKey: 'qtelivrée', title: 'Marchandises livrées', themeColor: '#10b981' });
 
-  doc.font('Helvetica-Bold').fontSize(11).text(`Montant livré : ${formatMoney(montantTotal)}`, { align: 'right' });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#10b981').text(`Montant livré : ${formatMoney(montantTotal)}`, { align: 'right' });
   doc.moveDown(2);
-  doc.fontSize(8).font('Helvetica').fillColor('#666666');
-  doc.text('Document émis automatiquement suite à la confirmation de livraison par le fournisseur.', {
-    align: 'left',
-  });
+  doc.fontSize(8).font('Helvetica').fillColor('#64748b');
+  doc.text('Document émis automatiquement suite à la réception effective de la marchandise à l\'entrepôt.', { align: 'left' });
   doc.fillColor('#000000');
 
   await pipeDocToFile(doc, outPath);
@@ -218,29 +270,39 @@ async function generateBonTransportPdf(idcommande) {
     },
   });
 
-  drawTitleBlock(doc, 'BON DE LIVRAISON — TRANSPORT');
-  doc.fontSize(10).font('Helvetica').text('(Document à remettre au chauffeur / transporteur)', { align: 'center' });
-  doc.moveDown(0.8);
+  drawHeaderBlock(doc, 'BON DE TRANSPORT', '#d97706');
 
-  doc.fontSize(10).font('Helvetica');
-  doc.text(`N° commande : ${commande.idcommande}`);
+  const startY = doc.y;
+  // Left Column - Transport details
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#d97706').text('INFORMATIONS TRANSPORT', 50, startY);
+  doc.font('Helvetica').fillColor('#334155');
+  doc.moveDown(0.4);
+  doc.text(`N° Commande : ${commande.idcommande}`);
   doc.text(`Référence : ${commande.reference || '—'}`);
-  doc.text(`Expéditeur (fournisseur) : ${commande.raisonsocial || '—'}`);
-  doc.text(`Établi le : ${formatFrenchDate(new Date())}`);
+  doc.text(`Date Expédition : ${formatFrenchDate(new Date())}`);
   if (commande.deleidellivraison) {
-    doc.text(`Livraison souhaitée / notes : ${String(commande.deleidellivraison)}`);
+    doc.text(`Livraison souhaitée : ${formatFrenchDate(commande.deleidellivraison)}`);
   }
-  doc.moveDown();
+  
+  // Right Column - Supplier/Shipper details
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#d97706').text('EXPÉDITEUR', 300, startY);
+  doc.font('Helvetica').fillColor('#334155');
+  doc.moveDown(0.4);
+  doc.text(`Nom : ${commande.raisonsocial || '—'}`);
+  if (commande.contact_nom) doc.text(`Contact : ${commande.contact_nom}`);
+  if (commande.telephone) doc.text(`Téléphone : ${commande.telephone}`);
+  if (commande.email) doc.text(`Email : ${commande.email}`);
+  
+  doc.y = Math.max(doc.y, startY + 80);
+  doc.x = 50;
+  doc.moveDown(1.5);
 
-  drawLigneTable(doc, lignes, { qtyKey: 'qtecommande', title: 'Marchandises prévues à l’expédition' });
+  drawLigneTable(doc, lignes, { qtyKey: 'qtecommande', title: 'Marchandises prévues à l’expédition', themeColor: '#d97706' });
 
-  doc.font('Helvetica-Bold').fontSize(11).text(`Montant (réf.) : ${formatMoney(montantTotal)}`, { align: 'right' });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#d97706').text(`Montant (réf.) : ${formatMoney(montantTotal)}`, { align: 'right' });
   doc.moveDown(2);
-  doc.fontSize(8).font('Helvetica').fillColor('#666666');
-  doc.text(
-    'Ce document accompagne la matière première en route vers BRALIMA. Conserver une copie avec le bon définitif après réception.',
-    { align: 'left' }
-  );
+  doc.fontSize(8).font('Helvetica').fillColor('#64748b');
+  doc.text('Ce document de transport doit obligatoirement accompagner le chauffeur durant le trajet vers la brasserie BRALIMA.', { align: 'left' });
   doc.fillColor('#000000');
 
   await pipeDocToFile(doc, outPath);

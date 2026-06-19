@@ -220,7 +220,7 @@
 // Export orders function
 function exportOrders() {
   const commandes = <%- JSON.stringify(commandes) %>;
-  let csv = 'N° Commande,Date,Statut,Montant\n';
+  let csv = '\uFEFFN° Commande,Date,Statut,Montant\n';
   
   commandes.forEach(function(commande) {
     csv += `${commande.idcommande},"${commande.datecreation || ''}","${commande.statut || ''}","${commande.montant || ''}"\n`;

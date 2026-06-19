@@ -292,8 +292,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // Créer le contenu CSV
-    let csvContent = "Référence,Fournisseur,Date de livraison,Montant,Statut\n";
+    // Créer le contenu CSV avec BOM pour Excel
+    let csvContent = "\uFEFFRéférence,Fournisseur,Date de livraison,Montant,Statut\n";
     
     visibleRows.forEach(row => {
       const cells = row.cells;
