@@ -158,8 +158,8 @@
                   <a href="/gestionnaire/stocks" class="text-blue-600 hover:text-blue-900" title="Voir les stocks">
                     <i class="fas fa-eye"></i>
                   </a>
-                  <form method="POST" action="/gestionnaire/alertes/<%= alerte.idalert %>/traiter" class="inline">
-                    <button type="submit" class="text-green-600 hover:text-green-900" title="Traiter l'alerte">
+                  <form method="POST" action="/gestionnaire/alertes/<%= alerte.idalert %>/traiter" class="inline alert-traiter-form" data-idmp="<%= alerte.idmp %>" data-matiere="<%= alerte.matiere %>" data-idalert="<%= alerte.idalert %>">
+                    <button type="button" class="text-green-600 hover:text-green-900 btn-traiter-alerte" title="Traiter l'alerte">
                       <i class="fas fa-check"></i>
                     </button>
                   </form>
@@ -440,6 +440,27 @@ document.addEventListener('DOMContentLoaded', function() {
   
   checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', updateSelectAllCheckbox);
+  });
+  
+  // Intercepter le traitement de l'alerte pour demander un réapprovisionnement
+  const buttons = document.querySelectorAll('.btn-traiter-alerte');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const form = this.closest('form');
+      const idmp = form.getAttribute('data-idmp');
+      const matiere = form.getAttribute('data-matiere');
+      const idalert = form.getAttribute('data-idalert');
+      
+      const confirmReorder = confirm(`Le stock de "${matiere}" est bas. Voulez-vous créer une commande de réapprovisionnement pour cette matière ?\n\n- Cliquez sur OK pour créer une commande de réapprovisionnement.\n- Cliquez sur Annuler pour marquer simplement l'alerte comme traitée sans passer de commande.`);
+      
+      if (confirmReorder) {
+        // Rediriger vers la création de commande avec pré-remplissage
+        window.location.href = `/commandes/create?idmp=${idmp}&idalert=${idalert}`;
+      } else {
+        // Soumettre le formulaire pour marquer comme traitée sans commande
+        form.submit();
+      }
+    });
   });
   
   // Test des boutons

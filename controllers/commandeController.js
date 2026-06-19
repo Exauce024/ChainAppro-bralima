@@ -103,6 +103,28 @@ class CommandeController {
         lignes: lignesNettoyees
       });
 
+      // Si une alerte predictive était liée, la marquer comme traitée automatiquement
+      const idalert = parseInt(req.body.idalert);
+      if (idalert) {
+        try {
+          await db.execute(`
+            UPDATE alertepredictive 
+            SET statut = 'traitee', iduser_traite = ?, date_traitement = CURRENT_TIMESTAMP 
+            WHERE idalert = ?
+          `, [idcreateur, idalert]);
+          
+          // Log d'audit pour le traitement automatique de l'alerte
+          await db.execute(
+            `INSERT INTO logaudit (iduser, action, module, detaillson) 
+             VALUES (?, 'TRAITER_ALERTE', 'COMMANDE', ?)`,
+            [idcreateur, `Alerte ${idalert} traitée automatiquement suite à la commande ${idcommande}`]
+          );
+          console.log(`✅ Alerte ${idalert} résolue automatiquement suite à la création de commande.`);
+        } catch (alertErr) {
+          console.error('Erreur traitement alerte automatique (non bloquant):', alertErr);
+        }
+      }
+
       // Création de la notification pour le fournisseur
       try {
         const NotificationModel = require('../models/notificationModel');

@@ -7,6 +7,7 @@
 
   <!-- Form Card -->
   <form method="POST" action="/commandes/create" class="space-y-6">
+    <input type="hidden" name="idalert" id="idalertInput" value="">
     <!-- General Information Card -->
     <div class="bg-white rounded-lg shadow">
       <div class="p-6 border-b border-gray-200">
@@ -114,6 +115,15 @@ const supplierRelations = <%- JSON.stringify(relations) %>;
 document.addEventListener('DOMContentLoaded', function() {
   generateReference();
 
+  // Parsing des paramètres d'URL pour le pré-remplissage (alertes)
+  const urlParams = new URLSearchParams(window.location.search);
+  const preselectedIdmp = urlParams.get('idmp');
+  const preselectedIdalert = urlParams.get('idalert');
+
+  if (preselectedIdalert) {
+    document.getElementById('idalertInput').value = preselectedIdalert;
+  }
+
   const supplierSelect = document.getElementById('supplierSelect');
   const materialSelect = document.getElementById('materialSelect');
   const quantityInput = document.getElementById('quantityInput');
@@ -191,6 +201,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Trigger initial update in case of form reload
   if (supplierSelect.value) {
     updateOrderLine();
+  }
+
+  // Sélection automatique de la matière première et de son fournisseur
+  if (preselectedIdmp) {
+    const matchingRelation = supplierRelations.find(r => Number(r.idmp) === Number(preselectedIdmp));
+    if (matchingRelation) {
+      supplierSelect.value = matchingRelation.idfournisseur;
+      updateOrderLine();
+      materialSelect.value = preselectedIdmp;
+      handleMaterialChange();
+    }
   }
 });
 
