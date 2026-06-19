@@ -215,7 +215,7 @@
     </div>
   </div>
 
-  <% if (commande.statut === 'envoyee') { %>
+  <% if (['envoyee', 'en_attente'].includes(commande.statut)) { %>
     <!-- Response Form Card -->
     <div class="bg-white rounded-lg shadow">
       <div class="p-6 border-b border-gray-200">
@@ -287,7 +287,7 @@
     </a>
     
     <div class="space-x-4">
-      <% if (['en_attente', 'approuvee', 'en_cours'].includes(commande.statut)) { %>
+      <% if (['approuvee', 'en_cours'].includes(commande.statut)) { %>
         <form method="POST" action="/fournisseur/commande/<%= commande.idcommande %>/confirm-delivery" class="inline"
           onsubmit="return confirm('Confirmer l\'expédition (départ de livraison) de cette commande ?');">
           <button type="submit" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 font-semibold">
