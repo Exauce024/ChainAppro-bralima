@@ -188,15 +188,12 @@ class CommandeController {
   static async downloadBonCommandePdf(req, res) {
     try {
       const { id } = req.params;
-      let filePath = getBonCommandePath(id);
-      if (!fs.existsSync(filePath)) {
-        try {
-          await generateBonCommandePdf(id);
-          filePath = getBonCommandePath(id);
-        } catch (genErr) {
-          console.error(genErr);
-          return res.status(404).send('Impossible de générer le bon de commande.');
-        }
+      let filePath;
+      try {
+        filePath = await generateBonCommandePdf(id);
+      } catch (genErr) {
+        console.error(genErr);
+        return res.status(404).send('Impossible de générer le bon de commande.');
       }
       const commande = await CommandeModel.findById(id);
       const fallback = `bon-commande-${id}.pdf`;
@@ -218,15 +215,12 @@ class CommandeController {
       if (normalizeStatut(commande.statut) !== 'livree') {
         return res.status(400).send('Le bon de livraison est disponible uniquement pour une commande livrée.');
       }
-      let filePath = getBonLivraisonPath(id);
-      if (!fs.existsSync(filePath)) {
-        try {
-          await generateBonLivraisonPdf(id);
-          filePath = getBonLivraisonPath(id);
-        } catch (genErr) {
-          console.error(genErr);
-          return res.status(404).send('Impossible de générer le bon de livraison.');
-        }
+      let filePath;
+      try {
+        filePath = await generateBonLivraisonPdf(id);
+      } catch (genErr) {
+        console.error(genErr);
+        return res.status(404).send('Impossible de générer le bon de livraison.');
       }
       const fallback = `bon-livraison-${id}.pdf`;
       const name =

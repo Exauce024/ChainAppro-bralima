@@ -181,15 +181,12 @@ class FournisseurController {
       const context = await FournisseurController.loadCommandeContext(id, idfournisseur);
       if (!context) return res.status(403).send('Cette commande ne vous appartient pas.');
 
-      let filePath = getBonCommandePath(id);
-      if (!fs.existsSync(filePath)) {
-        try {
-          await generateBonCommandePdf(id);
-          filePath = getBonCommandePath(id);
-        } catch (genErr) {
-          console.error(genErr);
-          return res.status(404).send('Impossible de générer le bon de commande.');
-        }
+      let filePath;
+      try {
+        filePath = await generateBonCommandePdf(id);
+      } catch (genErr) {
+        console.error(genErr);
+        return res.status(404).send('Impossible de générer le bon de commande.');
       }
       const ref = context.commande.reference;
       const name = ref ? `${String(ref).replace(/[^\w.-]+/g, '_')}-BC.pdf` : `bon-commande-${id}.pdf`;
@@ -213,15 +210,12 @@ class FournisseurController {
         return res.status(400).send('Le bon de livraison est disponible une fois la commande livrée.');
       }
 
-      let filePath = getBonLivraisonPath(id);
-      if (!fs.existsSync(filePath)) {
-        try {
-          await generateBonLivraisonPdf(id);
-          filePath = getBonLivraisonPath(id);
-        } catch (genErr) {
-          console.error(genErr);
-          return res.status(404).send('Impossible de générer le bon de livraison.');
-        }
+      let filePath;
+      try {
+        filePath = await generateBonLivraisonPdf(id);
+      } catch (genErr) {
+        console.error(genErr);
+        return res.status(404).send('Impossible de générer le bon de livraison.');
       }
       const ref = context.commande.reference;
       const name = ref ? `${String(ref).replace(/[^\w.-]+/g, '_')}-BL.pdf` : `bon-livraison-${id}.pdf`;
