@@ -34,7 +34,7 @@ class CommandeModel {
 
   static async findAll() {
     const [rows] = await db.execute(`
-      SELECT c.*, f.raisonsocial 
+      SELECT c.*, f.raisonsocial, c.prixtotal AS total 
       FROM commande c 
       LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur 
       ORDER BY c.datecreation DESC
@@ -168,7 +168,7 @@ module.exports = CommandeModel;
 
 CommandeModel.findByFournisseur = async function(idfournisseur) {
   const [rows] = await db.execute(`
-    SELECT c.*, 
+    SELECT c.*, c.prixtotal AS total, c.prixtotal AS montant,
            GROUP_CONCAT(CONCAT(mp.libellé, ' x ', lc.qtecommande) SEPARATOR ' | ') as details
     FROM commande c
     LEFT JOIN lignecommande lc ON c.idcommande = lc.idcommande
