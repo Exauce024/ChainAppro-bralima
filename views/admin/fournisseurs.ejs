@@ -57,8 +57,8 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900"><%= f.contact || '---' %></div>
+               <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900"><%= f.contact_nom || '---' %></div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900"><%= f.telephone %></div>
@@ -74,7 +74,7 @@
                 <% } %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= f.date_creation ? new Date(f.date_creation).toLocaleDateString('fr-FR') : '---' %>
+                <%= f.datecreation ? new Date(f.datecreation).toLocaleDateString('fr-FR') : '---' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
