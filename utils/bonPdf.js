@@ -44,19 +44,24 @@ function pipeDocToFile(doc, filePath) {
 function drawHeaderBlock(doc, title, themeColor = '#1e3a8a') {
   const logoPath = path.join(__dirname, '..', 'public', 'images', 'bralima-logo.png');
   if (fs.existsSync(logoPath)) {
-    doc.image(logoPath, 50, 40, { width: 75 });
+    doc.image(logoPath, 50, 30, { width: 70 });
   }
   
+  // Sub-header details under the logo
+  doc.fontSize(7).font('Helvetica').fillColor('#64748b');
+  doc.text('LUBUMBASHI - 29, Rte Munama, C/kampemba,', 50, 82);
+  doc.text('+243 998 946 935', 50, 91);
+  
   // Title and company info on the right
-  doc.fontSize(16).font('Helvetica-Bold').fillColor(themeColor).text(title, 50, 42, { align: 'right' });
-  doc.fontSize(9).font('Helvetica').fillColor('#475569').text('BRALIMA S.A. — Supply Chain Département', 50, 62, { align: 'right' });
-  doc.fontSize(8).font('Helvetica-Oblique').fillColor('#64748b').text('Système automatisé de suivi des approvisionnements', 50, 74, { align: 'right' });
+  doc.fontSize(16).font('Helvetica-Bold').fillColor(themeColor).text(title, 50, 32, { align: 'right' });
+  doc.fontSize(9).font('Helvetica').fillColor('#475569').text('BRALIMA S.A. — Supply Chain Département', 50, 52, { align: 'right' });
+  doc.fontSize(8).font('Helvetica-Oblique').fillColor('#64748b').text('Système automatisé de suivi des approvisionnements', 50, 64, { align: 'right' });
   
   // Separator line
-  doc.moveTo(50, 95).lineTo(545, 95).lineWidth(1.5).stroke('#e2e8f0');
+  doc.moveTo(50, 108).lineTo(545, 108).lineWidth(1.5).stroke('#e2e8f0');
   
   // Reset cursor position
-  doc.y = 115;
+  doc.y = 125;
   doc.x = 50;
   doc.fillColor('#000000').font('Helvetica');
 }
