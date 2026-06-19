@@ -451,14 +451,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const matiere = form.getAttribute('data-matiere');
       const idalert = form.getAttribute('data-idalert');
       
-      const confirmReorder = confirm(`Le stock de "${matiere}" est bas. Voulez-vous créer une commande de réapprovisionnement pour cette matière ?\n\n- Cliquez sur OK pour créer une commande de réapprovisionnement.\n- Cliquez sur Annuler pour marquer simplement l'alerte comme traitée sans passer de commande.`);
+      const confirmReorder = confirm(`Le stock de "${matiere}" est bas. Voulez-vous créer une commande de réapprovisionnement pour cette matière ?`);
       
       if (confirmReorder) {
         // Rediriger vers la création de commande avec pré-remplissage
         window.location.href = `/commandes/create?idmp=${idmp}&idalert=${idalert}`;
       } else {
-        // Soumettre le formulaire pour marquer comme traitée sans commande
-        form.submit();
+        // Annuler l'action et ne rien faire, l'alerte garde le même statut actif
+        console.log(`Action annulée, l'alerte ${idalert} reste active.`);
       }
     });
   });
