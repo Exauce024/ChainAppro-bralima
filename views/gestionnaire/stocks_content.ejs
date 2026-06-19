@@ -143,8 +143,8 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <%= mat.seuilcritique || 'N/A' %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                N/A
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                <%= mat.prix_unitaire > 0 ? (qteDisponible * mat.prix_unitaire).toLocaleString() + ' FC' : 'N/A' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <% if (qteDisponible <= (mat.seuilcritique || 5)) { %>

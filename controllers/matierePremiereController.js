@@ -67,13 +67,12 @@ class MatierePremiereController {
     try {
       // Générer un code-barres automatiquement
       const generatedBarcode = await MatierePremiereController.generateBarcode();
-      const [fournisseurs] = await db.execute('SELECT idfournisseur, raisonsocial FROM fournisseur WHERE statut = "actif" ORDER BY raisonsocial');
       
       res.render('layout_modern', {
         user: req.session.user,
         title: 'Créer une Matière Première',
         generatedBarcode,
-        fournisseurs,
+        fournisseurs: [],
         success: req.query.success || null,
         error: req.query.error || null
       });

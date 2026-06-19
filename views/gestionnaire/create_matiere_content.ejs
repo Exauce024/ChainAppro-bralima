@@ -50,30 +50,6 @@
           </div>
         </div>
 
-        <!-- Fournisseur & Tarification -->
-        <div class="border-b border-gray-200 pb-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Fournisseur & Tarification (Optionnel)</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
-              <select name="idfournisseur" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">Sélectionner un fournisseur</option>
-                <% fournisseurs.forEach(function(f) { %>
-                  <option value="<%= f.idfournisseur %>"><%= f.raisonsocial %></option>
-                <% }); %>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Prix par kilo (FC)</label>
-              <input type="number" 
-                     name="prix_kg" 
-                     min="0"
-                     step="0.01"
-                     placeholder="Ex: 1500"
-                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-          </div>
-        </div>
 
         <!-- Stock Thresholds -->
         <div>

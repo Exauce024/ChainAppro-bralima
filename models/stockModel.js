@@ -15,7 +15,8 @@ class StockModel {
   static async findAllWithDetails() {
     try {
       const [rows] = await db.execute(`
-        SELECT s.*, mp.libellé, mp.description, mp.seuilcritique, mp.seuilalerte
+        SELECT s.*, mp.libellé, mp.description, mp.seuilcritique, mp.seuilalerte,
+               COALESCE((SELECT fm.prix_kg FROM fournisseur_matiere fm WHERE fm.idmp = mp.idmp ORDER BY fm.datecreation DESC LIMIT 1), 0) AS prixunitaire
         FROM stock s
         JOIN matièrepremiere mp ON s.idmp = mp.idmp
         ORDER BY mp.libellé
