@@ -376,6 +376,31 @@ class FournisseurController {
       req.session.isMagicLink = true;
       req.session.magicCommandeId = magic.idcommande; // Pour traçabilité
 
+      // Charger l'identité réelle du fournisseur pour l'affichage de profil
+      const [fournisseurs] = await db.execute(
+        `SELECT raisonsocial, contact_nom, email FROM fournisseur WHERE idfournisseur = ?`,
+        [magic.idfournisseur]
+      );
+
+      if (fournisseurs.length > 0) {
+        const f = fournisseurs[0];
+        req.session.user = {
+          nom: f.contact_nom || f.raisonsocial || 'Fournisseur',
+          prenom: '',
+          email: f.email || '',
+          role_libelle: 'fournisseur',
+          idfournisseur: magic.idfournisseur
+        };
+      } else {
+        req.session.user = {
+          nom: 'Fournisseur',
+          prenom: '',
+          email: '',
+          role_libelle: 'fournisseur',
+          idfournisseur: magic.idfournisseur
+        };
+      }
+
       req.flash('success', 'Accès autorisé. Bienvenue sur votre portail.');
       res.redirect('/fournisseur/dashboard');
     } catch (err) {
