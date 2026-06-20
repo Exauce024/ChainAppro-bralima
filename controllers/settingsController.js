@@ -6,6 +6,10 @@ class SettingsController {
       const user = req.session.user;
       let settingsData = {};
 
+      if (!user) {
+        return res.redirect('/login');
+      }
+
       // Adapter selon le rôle de l'utilisateur
       switch (user.role_libelle) {
         case 'gestionnaire':
@@ -18,7 +22,8 @@ class SettingsController {
           settingsData = await getMagasinierSettings(user.idusers);
           break;
         case 'fournisseur':
-          settingsData = await getFournisseurSettings(user.idusers);
+          const idfournisseur = req.session.fournisseurId || user.idfournisseur;
+          settingsData = await getFournisseurSettings(idfournisseur);
           break;
         default:
           settingsData = await getDefaultSettings(user.idusers);
@@ -47,6 +52,10 @@ class SettingsController {
       const user = req.session.user;
       const settings = req.body;
 
+      if (!user) {
+        return res.redirect('/login');
+      }
+
       // Adapter selon le rôle
       switch (user.role_libelle) {
         case 'gestionnaire':
@@ -59,7 +68,8 @@ class SettingsController {
           await updateMagasinierSettings(user.idusers, settings);
           break;
         case 'fournisseur':
-          await updateFournisseurSettings(user.idusers, settings);
+          const idfournisseur = req.session.fournisseurId || user.idfournisseur;
+          await updateFournisseurSettings(idfournisseur, settings);
           break;
         default:
           await updateDefaultSettings(user.idusers, settings);
@@ -75,7 +85,11 @@ class SettingsController {
   static async updatePassword(req, res) {
     try {
       const { currentPassword, newPassword, confirmPassword } = req.body;
-      const userId = req.session.user.idusers;
+      const userId = req.session.user?.idusers;
+
+      if (!userId) {
+        return res.redirect('/settings?error=Cette fonctionnalité nécessite un compte utilisateur avec identifiants (mot de passe)');
+      }
 
       // Valider que les nouveaux mots de passe correspondent
       if (newPassword !== confirmPassword) {
@@ -109,7 +123,7 @@ class SettingsController {
   static async updateLanguage(req, res) {
     try {
       const { language } = req.body;
-      const userId = req.session.user.idusers;
+      const userId = req.session.user?.idusers;
 
       // Valider la langue
       const validLanguages = ['fr', 'en'];
@@ -121,14 +135,16 @@ class SettingsController {
       req.session.language = language;
       
       // Mettre à jour la langue dans la base de données (si vous avez une table user_settings)
-      try {
-        await db.execute(
-          'UPDATE users SET language = ? WHERE idusers = ?',
-          [language, userId]
-        );
-      } catch (error) {
-        // Si la colonne n'existe pas, on continue quand même
-        console.log('Colonne language non trouvée dans la table users');
+      if (userId) {
+        try {
+          await db.execute(
+            'UPDATE users SET language = ? WHERE idusers = ?',
+            [language, userId]
+          );
+        } catch (error) {
+          // Si la colonne n'existe pas, on continue quand même
+          console.log('Colonne language non trouvée dans la table users');
+        }
       }
 
       res.json({ success: true, message: 'Langue mise à jour avec succès' });

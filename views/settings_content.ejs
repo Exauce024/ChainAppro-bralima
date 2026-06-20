@@ -377,6 +377,120 @@
         </div>
       <% } %>
 
+      <!-- Magasinier Specific Tabs -->
+      <% if (user && user.role_libelle === 'magasinier') { %>
+        <!-- Operations Tab -->
+        <div id="operations-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres des opérations</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Entrepôt par défaut</label>
+                <input type="text" name="operations.defaultEntrepot" value="<%= settingsData.operations?.defaultEntrepot || '' %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Entrepôt affecté par défaut pour les réceptions</p>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <input type="checkbox" name="operations.autoPrint" <%= settingsData.operations?.autoPrint ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              <label class="ml-2 block text-sm text-gray-700">Imprimer automatiquement les bons de réception</label>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres
+            </button>
+          </form>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Préférences de notification</h3>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.stockThreshold" <%= settingsData.notifications?.stockThreshold !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Alerte de dépassement de seuil de stock</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.newTransfers" <%= settingsData.notifications?.newTransfers !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Notifications pour les nouveaux ordres de transfert</label>
+              </div>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les préférences
+            </button>
+          </form>
+        </div>
+      <% } %>
+
+      <!-- Fournisseur Specific Tabs -->
+      <% if (user && user.role_libelle === 'fournisseur') { %>
+        <!-- Profile Info Tab -->
+        <div id="profile-info-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres des informations profil</h3>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="profile.companyInfo" <%= settingsData.profile?.companyInfo !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Afficher les informations de l'entreprise</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="profile.contactInfo" <%= settingsData.profile?.contactInfo !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Afficher les informations de contact</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="profile.bankingInfo" <%= settingsData.profile?.bankingInfo ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Afficher les informations bancaires</label>
+              </div>
+            </div>
+
+            <h4 class="text-md font-medium text-gray-900 mt-6 mb-4">Notifications par e-mail</h4>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.newOrders" <%= settingsData.notifications?.newOrders !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Recevoir un e-mail pour chaque nouvelle commande</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.orderUpdates" <%= settingsData.notifications?.orderUpdates !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Recevoir un e-mail lors de la mise à jour des commandes</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" name="notifications.paymentAlerts" <%= settingsData.notifications?.paymentAlerts !== false ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label class="ml-2 block text-sm text-gray-700">Recevoir des alertes de paiement</label>
+              </div>
+            </div>
+
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres
+            </button>
+          </form>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="orders-tab" class="tab-content hidden">
+          <form method="POST" action="/settings" class="space-y-6">
+            <h3 class="text-lg font-medium text-gray-900">Paramètres des commandes</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Montant minimum de commande</label>
+                <input type="number" name="orders.minOrderAmount" value="<%= settingsData.orders?.minOrderAmount || 0 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Montant minimum exigé pour accepter une commande</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Délai de livraison standard (heures)</label>
+                <input type="number" name="orders.deliveryTime" value="<%= settingsData.orders?.deliveryTime || 48 %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-sm text-gray-500">Délai standard de traitement et de livraison</p>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <input type="checkbox" name="orders.autoAccept" <%= settingsData.orders?.autoAccept ? 'checked' : '' %> class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              <label class="ml-2 block text-sm text-gray-700">Accepter automatiquement les commandes conformes aux critères</label>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Sauvegarder les paramètres
+            </button>
+          </form>
+        </div>
+      <% } %>
+
       <!-- Interface Tab (Common for all roles) -->
       <div id="interface-tab" class="tab-content hidden">
         <form method="POST" action="/settings" class="space-y-6">

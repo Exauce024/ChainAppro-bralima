@@ -27,7 +27,7 @@
     </div>
     
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
+      <table id="fournisseurCommandesTable" class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Commande</th>
@@ -127,7 +127,12 @@
 <script>
 // Export orders function
 function exportOrders() {
-  const tableRows = document.querySelectorAll('tbody tr');
+  const table = document.getElementById('fournisseurCommandesTable');
+  if (!table) {
+    alert('Tableau de commandes introuvable');
+    return;
+  }
+  const tableRows = table.querySelectorAll('tbody tr');
   const visibleRows = Array.from(tableRows).filter(row => row.style.display !== 'none');
   
   if (visibleRows.length === 0) {
@@ -141,10 +146,10 @@ function exportOrders() {
   visibleRows.forEach(row => {
     const cells = row.cells;
     if (cells.length >= 4) {
-      const numCommande = cells[0].textContent.trim();
-      const date = cells[1].textContent.trim();
-      const statut = cells[2].textContent.trim();
-      const montant = cells[3].textContent.trim();
+      const numCommande = cells[0].textContent.trim().replace(/\s+/g, ' ');
+      const date = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      const statut = cells[2].textContent.trim().replace(/\s+/g, ' ');
+      const montant = cells[3].textContent.trim().replace(/\s+/g, ' ');
       
       csvContent += `"${numCommande}","${date}","${statut}","${montant}"\n`;
     }
