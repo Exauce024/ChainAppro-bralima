@@ -449,7 +449,7 @@
       const menuItems = document.querySelectorAll('.sidebar-item');
       
       menuItems.forEach(item => {
-        const link = item.tagName === 'A' ? item : item.querySelector('a');
+        const link = item.querySelector('a');
         if (link && link.getAttribute('href') === currentPath) {
           item.classList.add('bg-blue-50', 'text-blue-600', 'border-l-4', 'border-blue-600');
         }
