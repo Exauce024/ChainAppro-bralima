@@ -252,7 +252,7 @@
               </a>
             </li>
             <li>
-              <a href="/fournisseur/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+              <a href="/fournisseur/commandes" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
                 <i class="fas fa-clipboard-list w-5 mr-3"></i>
                 <span>Mes Commandes</span>
               </a>
@@ -409,6 +409,8 @@
           <%- include('gestionnaire/create_matiere_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Portail Fournisseur') { %>
           <%- include('fournisseur/dashboard_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Mes Commandes') { %>
+          <%- include('fournisseur/commandes_list_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Détails de la Commande') { %>
           <%- include('fournisseur/commande-detail_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Confirmer la livraison') { %>
@@ -447,7 +449,7 @@
       const menuItems = document.querySelectorAll('.sidebar-item');
       
       menuItems.forEach(item => {
-        const link = item.querySelector('a');
+        const link = item.tagName === 'A' ? item : item.querySelector('a');
         if (link && link.getAttribute('href') === currentPath) {
           item.classList.add('bg-blue-50', 'text-blue-600', 'border-l-4', 'border-blue-600');
         }

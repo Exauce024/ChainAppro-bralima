@@ -1,0 +1,148 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Mes Commandes</h1>
+      <p class="text-gray-600 mt-1">Consultez et gérez l'ensemble de vos commandes</p>
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-list text-blue-600"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Historique des commandes</h3>
+            <p class="text-sm text-gray-500">Liste exhaustive de vos commandes avec la BRALIMA</p>
+          </div>
+        </div>
+        <button onclick="exportOrders()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+          <i class="fas fa-download mr-2"></i>Exporter la liste
+        </button>
+      </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Commande</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% commandes.forEach(function(commande) { %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <%= commande.idcommande %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= commande.datecreation ? new Date(commande.datecreation).toLocaleDateString('fr-FR') : '---' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% 
+                var badgeClass = 'bg-gray-100 text-gray-800';
+                var statusText = commande.statut || 'inconnu';
+                if (commande.statut === 'approuvee') { 
+                  badgeClass = 'bg-green-100 text-green-800'; 
+                  statusText = 'Approuvée';
+                } else if (commande.statut === 'refusee') { 
+                  badgeClass = 'bg-red-100 text-red-800'; 
+                  statusText = 'Refusée';
+                } else if (commande.statut === 'envoyee') { 
+                  badgeClass = 'bg-blue-100 text-blue-800'; 
+                  statusText = 'Envoyée';
+                } else if (commande.statut === 'en_cours_de_livraison') { 
+                  badgeClass = 'bg-amber-100 text-amber-800'; 
+                  statusText = 'En cours de livraison';
+                } else if (commande.statut === 'livree') { 
+                  badgeClass = 'bg-emerald-100 text-emerald-800'; 
+                  statusText = 'Livrée';
+                }
+                %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= badgeClass %>">
+                  <%= statusText %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= commande.montant ? formatMoney(commande.montant) : '—' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-commande.pdf"
+                     class="text-primary hover:text-blue-900 p-1.5 rounded border border-transparent hover:border-blue-200"
+                     title="Bon de commande (PDF)"
+                     target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-file-pdf"></i>
+                  </a>
+                  <% if (commande.bonTransportDisponible) { %>
+                  <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-transport.pdf"
+                     class="text-amber-600 hover:text-amber-800 p-1.5 rounded border border-transparent hover:border-amber-200"
+                     title="Pour le chauffeur / transport"
+                     target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-dolly"></i>
+                  </a>
+                  <% } %>
+                  <% if (commande.statut === 'livree') { %>
+                  <a href="/fournisseur/commande/<%= commande.idcommande %>/bon-livraison.pdf"
+                     class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded border border-transparent hover:border-emerald-200"
+                     title="Bon livraison (après réception)"
+                     target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-clipboard-check"></i>
+                  </a>
+                  <% } %>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <a href="/fournisseur/commande/<%= commande.idcommande %>" class="text-blue-600 hover:text-blue-900">
+                  <i class="fas fa-eye mr-1"></i>Voir
+                </a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    
+    <% if (commandes.length === 0) { %>
+      <div class="p-8 text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-inbox text-gray-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune commande</h3>
+        <p class="text-gray-500">Vous n'avez aucune commande pour le moment.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+// Export orders function
+function exportOrders() {
+  const commandes = <%- JSON.stringify(commandes) %>;
+  let csv = '\uFEFFN° Commande,Date,Statut,Montant\n';
+  
+  commandes.forEach(function(commande) {
+    csv += `${commande.idcommande},"${commande.datecreation || ''}","${commande.statut || ''}","${commande.montant || ''}"\n`;
+  });
+  
+  // Create blob and download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `commandes_fournisseur_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>

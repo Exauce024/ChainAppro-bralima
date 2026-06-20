@@ -90,6 +90,27 @@ class FournisseurController {
     });
   }
 
+  static async commandesList(req, res) {
+    const idfournisseur = await FournisseurController.resolveFournisseurId(req);
+
+    if (!idfournisseur) {
+      return res.status(403).send('Accès non autorisé. Utilisez un Magic Link ou connectez-vous avec un compte fournisseur.');
+    }
+
+    const commandes = await CommandeModel.findByFournisseur(idfournisseur);
+
+    const commandesAvecDocs = commandes.map((c) => ({
+      ...c,
+      bonTransportDisponible: canDownloadTransportPdf(c.statut),
+    }));
+
+    res.render('layout_modern', {
+      commandes: commandesAvecDocs,
+      user: req.session.user || { role_libelle: 'fournisseur' },
+      title: 'Mes Commandes',
+    });
+  }
+
   static async viewCommande(req, res) {
     const { id } = req.params;
     const idfournisseur = await FournisseurController.resolveFournisseurId(req);
