@@ -219,20 +219,38 @@
 <script>
 // Export orders function
 function exportOrders() {
-  const commandes = <%- JSON.stringify(commandes) %>;
-  let csv = '\uFEFFN° Commande,Date,Statut,Montant\n';
+  const tableRows = document.querySelectorAll('tbody tr');
+  const visibleRows = Array.from(tableRows).filter(row => row.style.display !== 'none');
   
-  commandes.forEach(function(commande) {
-    csv += `${commande.idcommande},"${commande.datecreation || ''}","${commande.statut || ''}","${commande.montant || ''}"\n`;
+  if (visibleRows.length === 0) {
+    alert('Aucune commande à exporter');
+    return;
+  }
+
+  // Créer le contenu CSV avec BOM pour Excel
+  let csvContent = "\uFEFFN° Commande,Date,Statut,Montant\n";
+  
+  visibleRows.forEach(row => {
+    const cells = row.cells;
+    if (cells.length >= 4) {
+      const numCommande = cells[0].textContent.trim();
+      const date = cells[1].textContent.trim();
+      const statut = cells[2].textContent.trim();
+      const montant = cells[3].textContent.trim();
+      
+      csvContent += `"${numCommande}","${date}","${statut}","${montant}"\n`;
+    }
   });
-  
-  // Create blob and download
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+  // Créer et télécharger le fichier
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
+  
   link.setAttribute('href', url);
   link.setAttribute('download', `commandes_fournisseur_${new Date().toISOString().split('T')[0]}.csv`);
   link.style.visibility = 'hidden';
+  
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
