@@ -342,8 +342,19 @@ class CommandeController {
       if (commande && (commande.statut === 'en_attente' || commande.statut === 'approuvee')) {
         const fournisseur = await FournisseurModel.getWithEmail(commande.idfournisseur);
         if (fournisseur && fournisseur.email) {
+          // Génération du token d'accès magique
+          const token = crypto.randomBytes(32).toString('hex');
+          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+          
+          // Enregistrer le token dans la BDD
+          await db.execute(
+            `INSERT INTO magicklink (token, idfournisseur, idcommande, dateexpiration) 
+             VALUES (?, ?, ?, ?)`,
+            [token, commande.idfournisseur, commande.idcommande, expires]
+          );
+
           // Envoi de l'e-mail de relance
-          await Mailer.sendMagicLink(fournisseur.email, 'RELANCE-' + Date.now(), commande.idcommande);
+          await Mailer.sendMagicLink(fournisseur.email, token, commande.idcommande);
         }
 
         if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
