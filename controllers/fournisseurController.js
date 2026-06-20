@@ -374,20 +374,16 @@ class FournisseurController {
       const [links] = await db.execute(
         `SELECT * FROM magicklink 
          WHERE token = ? 
-         AND dateexpiration > NOW() 
-         AND utilise = false`,
+         AND dateexpiration > NOW()`,
         [token]
       );
 
       if (!links.length) {
-        req.flash('error', 'Lien invalide, expiré ou déjà utilisé.');
+        req.flash('error', 'Lien invalide ou expiré.');
         return res.redirect('/login');
       }
 
       const magic = links[0];
-
-      // Marquer comme utilisé immédiatement (one-time use strict)
-      await db.execute(`UPDATE magicklink SET utilise = true WHERE idtoken = ?`, [magic.idtoken]);
 
       // Nettoyage optionnel : supprimer les anciens tokens expirés
       await db.execute(`DELETE FROM magicklink WHERE dateexpiration < NOW()`);

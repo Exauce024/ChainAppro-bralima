@@ -8,7 +8,7 @@ router.use(isAuthenticated);
 // Récupérer les notifications de l'utilisateur connecté
 router.get('/', async (req, res) => {
   try {
-    const iduser = req.session.user.idusers;
+    const iduser = req.session.user.idusers || null;
     const role_libelle = req.session.user.role_libelle;
 
     const [list, count] = await Promise.all([
@@ -42,7 +42,7 @@ router.post('/:id/read', async (req, res) => {
 // Marquer toutes les notifications comme lues
 router.post('/read-all', async (req, res) => {
   try {
-    const iduser = req.session.user.idusers;
+    const iduser = req.session.user.idusers || null;
     const role_libelle = req.session.user.role_libelle;
     await NotificationModel.markAllAsRead(iduser, role_libelle);
     res.json({ success: true });
