@@ -202,7 +202,9 @@ document.getElementById('relancerBtn')?.addEventListener('click', async function
     const response = await fetch('/commandes/<%= commande.idcommande %>/relancer', { 
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
       }
     });
     

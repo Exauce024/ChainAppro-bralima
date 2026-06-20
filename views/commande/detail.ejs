@@ -98,13 +98,19 @@ var content = `
 
 <script>
 async function relancer(id) {
-  const res = await fetch('/commandes/' + id + '/relancer', { method: 'POST' });
+  const res = await fetch('/commandes/' + id + '/relancer', { 
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  });
   const data = await res.json();
   alert(data.message || 'Relance envoyée');
 }
 
 document.getElementById('relancerBtn').onclick = function() {
-  relancer(${commande.idcommande});
+  relancer(<%= commande.idcommande %>);
 };
 </script>
 `;

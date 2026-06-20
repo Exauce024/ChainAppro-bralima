@@ -339,6 +339,21 @@ class CommandeController {
       const { id } = req.params;
       const commande = await CommandeModel.findById(id);
 
+      // Robust AJAX check
+      const isAjax = req.xhr || 
+                    req.headers['x-requested-with'] === 'XMLHttpRequest' || 
+                    (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    (req.headers['content-type'] && req.headers['content-type'].includes('application/json'));
+
+      // Safe redirect helper inside the controller route to handle stripped Referer headers
+      const safeRedirectBack = (req, res, defaultFallback = `/commandes/${id}`) => {
+        const referer = req.headers.referer || req.headers.referrer;
+        if (referer && referer.includes('/commandes')) {
+          return res.redirect(referer);
+        }
+        return res.redirect(defaultFallback);
+      };
+
       if (commande && (commande.statut === 'en_attente' || commande.statut === 'approuvee')) {
         const fournisseur = await FournisseurModel.getWithEmail(commande.idfournisseur);
         if (fournisseur && fournisseur.email) {
@@ -357,25 +372,27 @@ class CommandeController {
           await Mailer.sendMagicLink(fournisseur.email, token, commande.idcommande);
         }
 
-        if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
+        if (isAjax) {
           return res.json({ success: true, message: 'Relance envoyée avec succès' });
         }
         req.flash('success', 'Relance envoyée avec succès au fournisseur.');
-        return res.redirect('back');
+        return safeRedirectBack(req, res);
       } else {
-        if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
+        if (isAjax) {
           return res.status(400).json({ success: false, message: 'La commande ne peut pas être relancée' });
         }
         req.flash('error', 'Cette commande ne peut pas être relancée.');
-        return res.redirect('back');
+        return safeRedirectBack(req, res);
       }
     } catch (err) {
       console.error(err);
-      if (req.headers['x-requested-with'] === 'XMLHttpRequest' || req.xhr) {
+      if (isAjax) {
         return res.status(500).json({ success: false, message: err.message });
       }
       req.flash('error', 'Erreur lors de l\'envoi de la relance.');
-      return res.redirect('back');
+      const referer = req.headers.referer || req.headers.referrer;
+      const fallbackUrl = (referer && referer.includes('/commandes')) ? referer : '/commandes';
+      return res.redirect(fallbackUrl);
     }
   }
 }

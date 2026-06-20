@@ -177,7 +177,7 @@
                     </form>
                   <% } %>
                   <% if (commande.statut === 'en_attente' || commande.statut === 'approuvee') { %>
-                    <form method="POST" action="/commandes/<%= commande.idcommande %>/relancer" class="inline">
+                    <form method="POST" action="/commandes/<%= commande.idcommande %>/relancer" class="inline form-relancer" data-id="<%= commande.idcommande %>">
                       <button type="submit" class="text-red-600 hover:text-red-900">Relancer</button>
                     </form>
                   <% } %>
@@ -399,12 +399,51 @@ document.addEventListener('DOMContentLoaded', function() {
     printWindow.document.close();
     printWindow.focus();
     
-    // Imprimer après un court délai pour s'assurer que le contenu est chargé
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
     }, 500);
   }
+
+  // Gestion AJAX pour le bouton Relancer
+  document.querySelectorAll('.form-relancer').forEach(form => {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = this.getAttribute('data-id');
+      const button = this.querySelector('button');
+      
+      const originalText = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Envoi...';
+      
+      try {
+        const response = await fetch(`/commandes/${id}/relancer`, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+          alert('Relance envoyée avec succès au fournisseur.');
+          button.innerHTML = 'Relancé';
+          button.disabled = true;
+          button.className = 'text-gray-400 cursor-not-allowed';
+        } else {
+          alert('Erreur : ' + (data.message || 'Impossible d\'envoyer la relance'));
+          button.disabled = false;
+          button.innerHTML = originalText;
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Une erreur est survenue lors de l\'envoi de la relance.');
+        button.disabled = false;
+        button.innerHTML = originalText;
+      }
+    });
+  });
 
   // Initialiser le compteur
   updateResultCount();
