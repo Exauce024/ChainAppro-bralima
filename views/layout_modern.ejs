@@ -539,14 +539,16 @@
       }
 
       function renderList(notifications) {
-        if (notifications.length === 0) {
+        // Ne garder que les notifications non lues
+        const unreadNotifications = notifications.filter(notif => !notif.lu);
+
+        if (unreadNotifications.length === 0) {
           notificationList.innerHTML = '<div class="p-4 text-center text-gray-500">Aucune notification</div>';
           return;
         }
 
         let html = '';
-        notifications.forEach(notif => {
-          const isUnread = !notif.lu;
+        unreadNotifications.forEach(notif => {
           const dateStr = new Date(notif.datecreation).toLocaleString('fr-FR', {
             hour: '2-digit',
             minute: '2-digit',
@@ -554,7 +556,7 @@
             month: '2-digit'
           });
           html += `
-            <div class="p-3 hover:bg-gray-50 transition-colors ${isUnread ? 'bg-blue-50/50 font-medium' : ''} flex justify-between items-start gap-2" data-id="${notif.idnotification}">
+            <div class="p-3 hover:bg-gray-50 transition-colors bg-blue-50/50 font-medium flex justify-between items-start gap-2" data-id="${notif.idnotification}">
               <div class="flex-1">
                 <div class="flex justify-between items-center mb-0.5">
                   <span class="font-semibold text-gray-800">${escapeHtml(notif.titre)}</span>
@@ -562,11 +564,9 @@
                 </div>
                 <p class="text-gray-600 text-[11px] leading-snug">${escapeHtml(notif.description)}</p>
               </div>
-              ${isUnread ? `
-                <button class="mark-single-read text-[10px] text-blue-500 hover:text-blue-700 ml-1 mt-0.5 focus:outline-none" title="Marquer comme lu">
-                  <i class="fas fa-check"></i>
-                </button>
-              ` : ''}
+              <button class="mark-single-read text-[10px] text-blue-500 hover:text-blue-700 ml-1 mt-0.5 focus:outline-none" title="Marquer comme lu">
+                <i class="fas fa-check"></i>
+              </button>
             </div>
           `;
         });
@@ -583,11 +583,18 @@
               const res = await fetch(`/notifications/${id}/read`, { method: 'POST' });
               const data = await res.json();
               if (data.success) {
-                parent.classList.remove('bg-blue-50/50', 'font-medium');
-                this.remove();
-                // recalculer le badge
-                const unread = document.querySelectorAll('.mark-single-read').length;
-                updateBadge(unread);
+                // Animation de sortie puis suppression de l'élément
+                parent.style.transition = 'opacity 0.2s, transform 0.2s';
+                parent.style.opacity = '0';
+                parent.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                  parent.remove();
+                  const remaining = document.querySelectorAll('.mark-single-read').length;
+                  updateBadge(remaining);
+                  if (remaining === 0) {
+                    notificationList.innerHTML = '<div class="p-4 text-center text-gray-500">Aucune notification</div>';
+                  }
+                }, 200);
               }
             } catch (err) {
               console.error(err);
@@ -609,10 +616,8 @@
           const res = await fetch('/notifications/read-all', { method: 'POST' });
           const data = await res.json();
           if (data.success) {
-            document.querySelectorAll('#notificationList > div').forEach(item => {
-              item.classList.remove('bg-blue-50/50', 'font-medium');
-            });
-            document.querySelectorAll('.mark-single-read').forEach(btn => btn.remove());
+            // Effacer toute la liste d'un coup
+            notificationList.innerHTML = '<div class="p-4 text-center text-gray-500">Aucune notification</div>';
             updateBadge(0);
           }
         } catch (err) {
