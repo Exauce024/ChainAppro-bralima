@@ -118,7 +118,8 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de livraison</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière Première</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité Commandée</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
@@ -140,11 +141,10 @@
                 <%= commande.deleidellivraison ? new Date(commande.deleidellivraison).toLocaleDateString('fr-FR') : '---' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <% if (commande.total) { %>
-                  <%= formatMoney(commande.total) %>
-                <% } else { %>
-                  <span class="text-gray-400">---</span>
-                <% } %>
+                <%= commande.matieres || 'Non défini' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= commande.quantites || '---' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <% if (commande.statut === 'en_attente') { %>
@@ -306,17 +306,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Créer le contenu CSV avec BOM pour Excel
-    let csvContent = "\uFEFFRéférence,Fournisseur,Date de livraison,Montant,Statut\n";
+    let csvContent = "\uFEFFRéférence,Fournisseur,Date de livraison,Matière Première,Quantité Commandée,Statut\n";
     
     visibleRows.forEach(row => {
       const cells = row.cells;
       const reference = cells[0].textContent.trim();
       const fournisseur = cells[1].textContent.trim();
       const dateLivraison = cells[2].textContent.trim();
-      const montant = cells[3].textContent.trim();
-      const statut = cells[4].textContent.trim();
+      const matiere = cells[3].textContent.trim();
+      const quantite = cells[4].textContent.trim();
+      const statut = cells[5].textContent.trim();
       
-      csvContent += `"${reference}","${fournisseur}","${dateLivraison}","${montant}","${statut}"\n`;
+      csvContent += `"${reference}","${fournisseur}","${dateLivraison}","${matiere}","${quantite}","${statut}"\n`;
     });
 
     // Créer et télécharger le fichier
@@ -369,7 +370,8 @@ document.addEventListener('DOMContentLoaded', function() {
               <th>Référence</th>
               <th>Fournisseur</th>
               <th>Date de livraison</th>
-              <th>Montant</th>
+              <th>Matière Première</th>
+              <th>Quantité Commandée</th>
               <th>Statut</th>
             </tr>
           </thead>
@@ -383,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <td>${cells[2].textContent.trim()}</td>
                   <td>${cells[3].textContent.trim()}</td>
                   <td>${cells[4].textContent.trim()}</td>
+                  <td>${cells[5].textContent.trim()}</td>
                 </tr>
               `;
             }).join('')}
