@@ -106,6 +106,30 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Le nom du produit est obligatoire');
       return;
     }
+
+    const scInput = document.querySelector('input[name="seuilcritique"]');
+    const saInput = document.querySelector('input[name="seuilalerte"]');
+    const sc = parseFloat(scInput.value) || 0;
+    const sa = parseFloat(saInput.value) || 0;
+
+    if (sc >= sa) {
+      e.preventDefault();
+      alert("Le seuil d'alerte doit obligatoirement être supérieur au seuil critique");
+      
+      // Highlight the fields in red
+      scInput.classList.add('border-red-500', 'focus:ring-red-500');
+      saInput.classList.add('border-red-500', 'focus:ring-red-500');
+      
+      // Remove red highlights on user input
+      const resetBorders = () => {
+        scInput.classList.remove('border-red-500', 'focus:ring-red-500');
+        saInput.classList.remove('border-red-500', 'focus:ring-red-500');
+      };
+      scInput.addEventListener('input', resetBorders, { once: true });
+      saInput.addEventListener('input', resetBorders, { once: true });
+      
+      return;
+    }
   });
 });
 </script>

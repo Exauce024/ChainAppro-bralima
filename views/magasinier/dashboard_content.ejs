@@ -5,11 +5,7 @@
   </div>
 
   <!-- KPI -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500">
-      <p class="text-sm text-gray-500">Stock total</p>
-      <p class="text-2xl font-bold text-gray-900"><%= (stats.stockTotal || 0).toLocaleString('fr-CD') %> <span class="text-sm font-normal text-gray-500">unités</span></p>
-    </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     <div class="bg-white rounded-lg shadow p-5 border-l-4 border-emerald-500">
       <p class="text-sm text-gray-500">Matières en stock</p>
       <p class="text-2xl font-bold text-gray-900"><%= stats.nbMatieresStockees || 0 %></p>
@@ -74,7 +70,7 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entrepôt</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lignes stock</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Matière première</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantité totale</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Alertes</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dernière MàJ</th>
@@ -89,8 +85,8 @@
             %>
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= e.nom %></td>
-                <td class="px-6 py-4 text-sm text-gray-600"><%= e.nb_lignes_stock || 0 %></td>
-                <td class="px-6 py-4 text-sm text-gray-900"><%= Number(e.stock_total || 0).toLocaleString('fr-CD') %> unités</td>
+                <td class="px-6 py-4 text-sm text-gray-600"><%= e.matiere_premiere || '—' %></td>
+                <td class="px-6 py-4 text-sm text-gray-900"><%= Number(e.stock_total || 0).toLocaleString('fr-CD') %> Kg</td>
                 <td class="px-6 py-4">
                   <span class="px-2 py-1 text-xs font-semibold rounded-full <%= badgeClass %>"><%= badgeText %></span>
                 </td>

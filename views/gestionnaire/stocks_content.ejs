@@ -25,21 +25,13 @@
   <% } %>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="bg-white rounded-lg shadow p-6 text-center">
       <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
         <i class="fas fa-boxes text-blue-600 text-lg"></i>
       </div>
       <h3 class="text-lg font-semibold text-gray-900"><%= stats.totalMatierePremieres || 0 %></h3>
       <p class="text-sm text-gray-600">Matières premières</p>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow p-6 text-center">
-      <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
-        <i class="fas fa-cubes text-emerald-600 text-lg"></i>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-900"><%= stats.stockTotal || 0 %></h3>
-      <p class="text-sm text-gray-600">Stock total</p>
     </div>
     
     <div class="bg-white rounded-lg shadow p-6 text-center">
@@ -103,12 +95,13 @@
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière première</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unité</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seuil alerte</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seuil critique</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valeur</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+            <% if (user && String(user.role_libelle).toLowerCase() !== 'magasinier') { %>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <% } %>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200" id="stocksTableBody">
@@ -132,16 +125,13 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-sm font-medium text-gray-900"><%= qteDisponible || 0 %></span>
+                <span class="text-sm font-medium text-gray-900"><%= qteDisponible || 0 %> Kg</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                Unités
+                <%= mat.seuilalerte !== null && mat.seuilalerte !== undefined ? mat.seuilalerte + ' Kg' : 'N/A' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= mat.seuilalerte || 'N/A' %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= mat.seuilcritique || 'N/A' %>
+                <%= mat.seuilcritique !== null && mat.seuilcritique !== undefined ? mat.seuilcritique + ' Kg' : 'N/A' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                 <%= mat.prix_unitaire > 0 ? (qteDisponible * mat.prix_unitaire).toLocaleString() + ' FC' : 'N/A' %>
@@ -161,11 +151,13 @@
                   </span>
                 <% } %>
               </td>
+              <% if (user && String(user.role_libelle).toLowerCase() !== 'magasinier') { %>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <a href="/gestionnaire/stocks/view/<%= mat.idmp %>" class="text-blue-600 hover:text-blue-900 mr-3">
                   <i class="fas fa-eye mr-1"></i>Voir
                 </a>
               </td>
+              <% } %>
             </tr>
           <% }); %>
         </tbody>

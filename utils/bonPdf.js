@@ -100,7 +100,7 @@ function drawLigneTable(doc, lignes, { qtyKey, title, themeColor = '#1e3a8a' }) 
 
     const label = ligne.libelle || ligne.description || `MP #${ligne.idmp}`;
     doc.text(label.substring(0, 48), x1 + 5, y, { width: x2 - x1 - 15 });
-    doc.text(String(q), x2, y);
+    doc.text(String(q) + ' Kg', x2, y);
     doc.text(formatMoney(pu), x3, y);
     doc.text(formatMoney(lineTotal), x4, y);
     y += 20;
@@ -146,7 +146,6 @@ async function generateBonCommandePdf(idcommande) {
   doc.font('Helvetica-Bold').fontSize(10).fillColor('#1e3a8a').text('INFORMATIONS COMMANDE', 50, startY);
   doc.font('Helvetica').fillColor('#334155');
   doc.moveDown(0.4);
-  doc.text(`N° Interne : ${commande.idcommande}`);
   doc.text(`Référence : ${commande.reference || '—'}`);
   doc.text(`Date émission : ${formatFrenchDate(commande.datecreation)}`);
   if (commande.deleidellivraison) {

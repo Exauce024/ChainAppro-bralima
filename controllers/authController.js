@@ -1,5 +1,6 @@
 const UserModel = require('../models/userModel');
 const db = require('../config/db');
+const bcrypt = require('bcryptjs');
 const { normalizeRole } = require('../middleware/authMiddlawere');
 
 class AuthController {
@@ -34,7 +35,8 @@ class AuthController {
         prenom: user.prenom,
         email: user.email,
         role_libelle: user.role_libelle,
-        role_id: user.role_id
+        role_id: user.role_id,
+        must_change_password: user.must_change_password || 0
       };
 
       // Log audit
@@ -43,6 +45,11 @@ class AuthController {
          VALUES (?, 'LOGIN', 'AUTH', ?)`,
         [user.idusers, `Connexion réussie depuis ${req.ip}`]
       );
+
+      // Si l'utilisateur doit changer son mot de passe → redirection forcée
+      if (user.must_change_password) {
+        return res.redirect('/change-password');
+      }
 
       // Redirection intelligente selon rôle
       const role = normalizeRole(user.role_libelle);
@@ -68,40 +75,74 @@ class AuthController {
     });
   }
 
-  // Magic Link verification (pour fournisseurs)
-  static async magicAccess(req, res) {
-    const { token } = req.query;
+  // Affiche le formulaire de changement de mot de passe
+  static async showChangePassword(req, res) {
+    if (!req.session.user) {
+      return res.redirect('/login');
+    }
+    res.render('change_password', {
+      title: 'Créer votre mot de passe',
+      error: null,
+      success: null
+    });
+  }
+
+  // Traite le changement de mot de passe
+  static async changePassword(req, res) {
+    if (!req.session.user) {
+      return res.redirect('/login');
+    }
+
+    const { nouveau_mot_de_passe, confirmation } = req.body;
+    const idusers = req.session.user.idusers;
+
+    if (!nouveau_mot_de_passe || nouveau_mot_de_passe.length < 8) {
+      return res.render('change_password', {
+        title: 'Créer votre mot de passe',
+        error: 'Le mot de passe doit contenir au moins 8 caractères.',
+        success: null
+      });
+    }
+
+    if (nouveau_mot_de_passe !== confirmation) {
+      return res.render('change_password', {
+        title: 'Créer votre mot de passe',
+        error: 'Les deux mots de passe ne correspondent pas.',
+        success: null
+      });
+    }
 
     try {
-      const [link] = await db.execute(
-        `SELECT * FROM magicklink 
-         WHERE token = ? AND dateexpiration > NOW() AND utilise = false`,
-        [token]
+      const hashed = await bcrypt.hash(nouveau_mot_de_passe, 12);
+      await db.execute(
+        `UPDATE users SET motdepasse = ?, must_change_password = 0 WHERE idusers = ?`,
+        [hashed, idusers]
       );
 
-      if (!link.length) {
-        return res.status(400).send('Lien invalide ou expiré');
-      }
+      // Mettre à jour la session
+      req.session.user.must_change_password = 0;
 
-      const magicLink = link[0];
-
-      // Marquer comme utilisé
-      await db.execute(`UPDATE magicklink SET utilise = true WHERE idtoken = ?`, [magicLink.idtoken]);
-
-      // Charger la commande et rediriger vers le portail fournisseur
-      const [commande] = await db.execute(
-        `SELECT * FROM commande WHERE idcommande = ?`,
-        [magicLink.idcommande]
+      // Log audit
+      await db.execute(
+        `INSERT INTO logaudit (iduser, action, module, detaillson) VALUES (?, 'CHANGE_PASSWORD', 'AUTH', ?)`,
+        [idusers, 'Mot de passe changé avec succès après connexion temporaire']
       );
 
-      if (!commande.length) return res.status(404).send('Commande non trouvée');
+      // Redirection selon le rôle
+      const role = normalizeRole(req.session.user.role_libelle);
+      if (role === 'admin' || role === 'administrateur') return res.redirect('/admin/dashboard');
+      if (role === 'gestionnaire' || role === 'gestionnaire supply chain') return res.redirect('/dashboard');
+      if (role === 'fournisseur') return res.redirect('/fournisseur/dashboard');
+      if (role === 'magasinier') return res.redirect('/magasinier/dashboard');
 
-      // Ici on peut mettre en session temporaire pour le fournisseur ou utiliser un token JWT court
-      // Pour l'instant : on redirige vers une vue de visualisation commande
-      res.render('fournisseur/commande-view', { commande: commande[0] });
+      res.redirect('/login');
     } catch (err) {
       console.error(err);
-      res.status(500).send('Erreur lors de l\'accès magic link');
+      res.render('change_password', {
+        title: 'Créer votre mot de passe',
+        error: 'Erreur lors de la mise à jour du mot de passe.',
+        success: null
+      });
     }
   }
 }

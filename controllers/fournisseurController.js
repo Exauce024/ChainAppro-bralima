@@ -14,35 +14,24 @@ const {
 
 class FournisseurController {
   static async resolveFournisseurId(req) {
-    if (req.session.fournisseurId) {
-      return req.session.fournisseurId;
-    }
-
     const role = normalizeRole(req.session.user?.role_libelle);
     if (!req.session.user || role !== 'fournisseur') {
       return null;
     }
 
     if (req.session.user.idfournisseur) {
-      req.session.fournisseurId = req.session.user.idfournisseur;
-      return req.session.fournisseurId;
+      return req.session.user.idfournisseur;
     }
 
+    // Résolution par email si idfournisseur absent de la session
     const [matchedFournisseurs] = await db.execute(
       `SELECT idfournisseur FROM fournisseur WHERE email = ? LIMIT 1`,
       [req.session.user.email]
     );
 
     if (matchedFournisseurs.length > 0) {
-      req.session.fournisseurId = matchedFournisseurs[0].idfournisseur;
-      return req.session.fournisseurId;
-    }
-
-    const [fallbackFournisseurs] = await db.execute(`SELECT idfournisseur FROM fournisseur LIMIT 1`);
-
-    if (fallbackFournisseurs.length > 0) {
-      req.session.fournisseurId = fallbackFournisseurs[0].idfournisseur;
-      return req.session.fournisseurId;
+      req.session.user.idfournisseur = matchedFournisseurs[0].idfournisseur;
+      return req.session.user.idfournisseur;
     }
 
     return null;
@@ -72,7 +61,7 @@ class FournisseurController {
     const idfournisseur = await FournisseurController.resolveFournisseurId(req);
 
     if (!idfournisseur) {
-      return res.status(403).send('Accès non autorisé. Utilisez un Magic Link ou connectez-vous avec un compte fournisseur.');
+      return res.status(403).send('Accès non autorisé. Veuillez vous connecter avec vos identifiants fournisseur.');
     }
 
     const commandes = await CommandeModel.findByFournisseur(idfournisseur);
@@ -94,7 +83,7 @@ class FournisseurController {
     const idfournisseur = await FournisseurController.resolveFournisseurId(req);
 
     if (!idfournisseur) {
-      return res.status(403).send('Accès non autorisé. Utilisez un Magic Link ou connectez-vous avec un compte fournisseur.');
+      return res.status(403).send('Accès non autorisé. Veuillez vous connecter avec vos identifiants fournisseur.');
     }
 
     const commandes = await CommandeModel.findByFournisseur(idfournisseur);
@@ -116,7 +105,7 @@ class FournisseurController {
     const idfournisseur = await FournisseurController.resolveFournisseurId(req);
 
     if (!idfournisseur) {
-      return res.status(403).send('Accès non autorisé. Utilisez un Magic Link ou connectez-vous avec un compte fournisseur.');
+      return res.status(403).send('Accès non autorisé. Veuillez vous connecter avec vos identifiants fournisseur.');
     }
 
     const context = await FournisseurController.loadCommandeContext(id, idfournisseur);
@@ -367,65 +356,6 @@ class FournisseurController {
     }
   }
 
-  static async magicAccess(req, res) {
-    const { token } = req.query;
-
-    try {
-      const [links] = await db.execute(
-        `SELECT * FROM magicklink 
-         WHERE token = ? 
-         AND dateexpiration > NOW()`,
-        [token]
-      );
-
-      if (!links.length) {
-        req.flash('error', 'Lien invalide ou expiré.');
-        return res.redirect('/login');
-      }
-
-      const magic = links[0];
-
-      // Nettoyage optionnel : supprimer les anciens tokens expirés
-      await db.execute(`DELETE FROM magicklink WHERE dateexpiration < NOW()`);
-
-      // Session temporaire sécurisée pour le fournisseur
-      req.session.fournisseurId = magic.idfournisseur;
-      req.session.isMagicLink = true;
-      req.session.magicCommandeId = magic.idcommande; // Pour traçabilité
-
-      // Charger l'identité réelle du fournisseur pour l'affichage de profil
-      const [fournisseurs] = await db.execute(
-        `SELECT raisonsocial, contact_nom, email FROM fournisseur WHERE idfournisseur = ?`,
-        [magic.idfournisseur]
-      );
-
-      if (fournisseurs.length > 0) {
-        const f = fournisseurs[0];
-        req.session.user = {
-          nom: f.contact_nom || f.raisonsocial || 'Fournisseur',
-          prenom: '',
-          email: f.email || '',
-          role_libelle: 'fournisseur',
-          idfournisseur: magic.idfournisseur
-        };
-      } else {
-        req.session.user = {
-          nom: 'Fournisseur',
-          prenom: '',
-          email: '',
-          role_libelle: 'fournisseur',
-          idfournisseur: magic.idfournisseur
-        };
-      }
-
-      req.flash('success', 'Accès autorisé. Bienvenue sur votre portail.');
-      res.redirect('/fournisseur/dashboard');
-    } catch (err) {
-      console.error(err);
-      req.flash('error', 'Erreur lors de l\'accès au lien.');
-      res.redirect('/login');
-    }
-  }
 }
 
 module.exports = FournisseurController;

@@ -25,7 +25,7 @@
   <% } %>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="bg-white rounded-lg shadow p-6 text-center">
       <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
         <i class="fas fa-bell text-blue-600 text-lg"></i>
@@ -49,14 +49,6 @@
       <h3 class="text-lg font-semibold text-gray-900"><%= stats.alertesMoyenne || 0 %></h3>
       <p class="text-sm text-gray-600">Urgence moyenne</p>
     </div>
-    
-    <div class="bg-white rounded-lg shadow p-6 text-center">
-      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-        <i class="fas fa-info-circle text-blue-600 text-lg"></i>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-900"><%= stats.alertesBasse || 0 %></h3>
-      <p class="text-sm text-gray-600">Basse urgence</p>
-    </div>
   </div>
 
   <!-- Filter and Search -->
@@ -75,13 +67,12 @@
           <option value="">Toutes les urgences</option>
           <option value="haute">Haute</option>
           <option value="moyenne">Moyenne</option>
-          <option value="basse">Basse</option>
         </select>
         
         <select id="filterType" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Tous les types</option>
-          <option value="seuil_critique">Seuil critique</option>
-          <option value="stock_faible">Stock faible</option>
+          <option value="seuil critique">Seuil critique</option>
+          <option value="seuil alerte">Seuil d'alerte</option>
           <option value="autre">Autre</option>
         </select>
         
@@ -132,8 +123,8 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                  <%= alerte.typealerte === 'seuil_critique' ? 'bg-red-100 text-red-800' : 
-                     alerte.typealerte === 'stock_faible' ? 'bg-amber-100 text-amber-800' : 
+                  <%= alerte.typealerte === 'seuil critique' ? 'bg-red-100 text-red-800' : 
+                     alerte.typealerte === 'seuil alerte' ? 'bg-amber-100 text-amber-800' : 
                      'bg-gray-100 text-gray-800' %>">
                   <%= alerte.typealerte || 'Autre' %>
                 </span>

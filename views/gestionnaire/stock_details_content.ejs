@@ -48,8 +48,8 @@
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Quantité disponible</label>
-            <p class="text-2xl font-bold text-blue-600"><%= stock.qtedisponible || 0 %></p>
-            <p class="text-sm text-gray-500">Unités</p>
+            <p class="text-2xl font-bold text-blue-600"><%= stock.qtedisponible || 0 %> Kg</p>
+            <p class="text-sm text-gray-500">Kg</p>
           </div>
         </div>
         
@@ -57,12 +57,12 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Seuil d'alerte</label>
-            <p class="text-lg font-semibold text-amber-600"><%= stock.seuilalerte || 'Non défini' %></p>
+            <p class="text-lg font-semibold text-amber-600"><%= stock.seuilalerte !== null && stock.seuilalerte !== undefined ? stock.seuilalerte + ' Kg' : 'Non défini' %></p>
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Seuil critique</label>
-            <p class="text-lg font-semibold text-red-600"><%= stock.seuilcritique || 'Non défini' %></p>
+            <p class="text-lg font-semibold text-red-600"><%= stock.seuilcritique !== null && stock.seuilcritique !== undefined ? stock.seuilcritique + ' Kg' : 'Non défini' %></p>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@
         <div>
           <div class="flex justify-between items-center mb-2">
             <span class="text-sm font-medium text-gray-700">Niveau de stock</span>
-            <span class="text-sm text-gray-500"><%= stock.qtedisponible || 0 %> unités</span>
+            <span class="text-sm text-gray-500"><%= stock.qtedisponible || 0 %> Kg</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-4">
             <% 
@@ -121,10 +121,10 @@
             </div>
           </div>
           <div class="flex justify-between mt-2 text-xs text-gray-500">
-            <span>0</span>
-            <span>Critique: <%= stock.seuilcritique || 0 %></span>
-            <span>Alerte: <%= stock.seuilalerte || 0 %></span>
-            <span>Maximum: <%= Math.round(maxStock) %></span>
+            <span>0 Kg</span>
+            <span>Critique: <%= stock.seuilcritique !== null && stock.seuilcritique !== undefined ? stock.seuilcritique + ' Kg' : '0 Kg' %></span>
+            <span>Alerte: <%= stock.seuilalerte !== null && stock.seuilalerte !== undefined ? stock.seuilalerte + ' Kg' : '0 Kg' %></span>
+            <span>Maximum: <%= Math.round(maxStock) %> Kg</span>
           </div>
         </div>
         
@@ -199,7 +199,7 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <span class="font-mono bg-gray-100 px-2 py-1 rounded"><%= lot.lotnumero || 'N/A' %></span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold"><%= lot.qtedisponible || 0 %> u.</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold"><%= lot.qtedisponible || 0 %> Kg</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <%= lot.dateperemption ? new Date(lot.dateperemption).toLocaleDateString('fr-FR') : 'Non définie' %>
                 </td>

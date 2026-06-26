@@ -155,7 +155,7 @@ class GestionnaireStockController {
       }
 
       const [stocks] = await db.execute(`
-        SELECT s.*, mp.libellé, mp.description, mp.unite, mp.seuilcritique, mp.seuilalerte, mp.prixunitaire
+        SELECT s.*, mp.libellé, mp.description, mp.seuilcritique, mp.seuilalerte
         FROM stock s
         JOIN matièrepremiere mp ON s.idmp = mp.idmp
         WHERE mp.libellé LIKE ? OR mp.description LIKE ?

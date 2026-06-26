@@ -177,28 +177,16 @@ class StockModel {
       SELECT
         e.identret,
         e.nom,
-        COUNT(DISTINCT s.idstock) AS nb_lignes_stock,
+        mp.libellé AS matiere_premiere,
         COALESCE(SUM(s.qtedisponible), 0) AS stock_total,
         MAX(s.datemaj) AS derniere_maj,
-        SUM(
-          CASE
-            WHEN s.idstock IS NOT NULL AND s.qtedisponible <= COALESCE(mp.seuilcritique, 0) THEN 1
-            ELSE 0
-          END
-        ) AS alertes_critiques,
-        SUM(
-          CASE
-            WHEN s.idstock IS NOT NULL
-              AND s.qtedisponible > COALESCE(mp.seuilcritique, 0)
-              AND s.qtedisponible <= COALESCE(mp.seuilalerte, 0) THEN 1
-            ELSE 0
-          END
-        ) AS alertes_faibles
+        CASE WHEN SUM(s.qtedisponible) <= COALESCE(mp.seuilcritique, 0) THEN 1 ELSE 0 END AS alertes_critiques,
+        CASE WHEN SUM(s.qtedisponible) > COALESCE(mp.seuilcritique, 0) AND SUM(s.qtedisponible) <= COALESCE(mp.seuilalerte, 0) THEN 1 ELSE 0 END AS alertes_faibles
       FROM entrepôt e
-      LEFT JOIN stock s ON e.identret = s.identret
-      LEFT JOIN matièrepremiere mp ON s.idmp = mp.idmp
-      GROUP BY e.identret, e.nom
-      ORDER BY e.nom ASC
+      INNER JOIN stock s ON e.identret = s.identret
+      INNER JOIN matièrepremiere mp ON s.idmp = mp.idmp
+      GROUP BY e.identret, e.nom, s.idmp, mp.libellé
+      ORDER BY e.nom ASC, mp.libellé ASC
     `);
     return rows;
   }
@@ -256,9 +244,8 @@ class StockModel {
 
     const [alertRows] = await db.execute(`
       SELECT COUNT(*) AS alertes_stock
-      FROM stock s
-      INNER JOIN matièrepremiere mp ON s.idmp = mp.idmp
-      WHERE s.qtedisponible <= COALESCE(mp.seuilalerte, 0)
+      FROM alertepredictive
+      WHERE statut = 'active'
     `);
 
     return {

@@ -93,6 +93,13 @@ class MatierePremiereController {
     try {
       const { libellé, description, seuilcritique, seuilalerte, codebarre, generateAuto, idfournisseur, prix_kg } = req.body;
       
+      // Validation des seuils : le seuil d'alerte doit être supérieur au seuil critique
+      const sc = parseFloat(seuilcritique) || 0;
+      const sa = parseFloat(seuilalerte) || 0;
+      if (sc >= sa) {
+        return res.redirect(`/matieres/create?error=Le seuil d'alerte doit obligatoirement être supérieur au seuil critique`);
+      }
+
       let finalBarcode = codebarre;
       
       // Si génération automatique demandée
@@ -204,6 +211,13 @@ class MatierePremiereController {
       const { id } = req.params;
       const { libellé, description, seuilcritique, seuilalerte, codebarre } = req.body;
       
+      // Validation des seuils : le seuil d'alerte doit être supérieur au seuil critique
+      const sc = parseFloat(seuilcritique) || 0;
+      const sa = parseFloat(seuilalerte) || 0;
+      if (sc >= sa) {
+        return res.redirect(`/matieres/${id}?error=Le seuil d'alerte doit obligatoirement être supérieur au seuil critique`);
+      }
+
       // Vérifier si la matière première existe
       const [existing] = await db.execute(
         'SELECT idmp FROM matièrepremiere WHERE idmp = ?',

@@ -28,6 +28,7 @@ router.get('/fournisseur/:id/edit', AdminController.editFournisseur);
 router.post('/fournisseur/:id/update', AdminController.updateFournisseur);
 router.get('/fournisseur/:id/delete', AdminController.confirmDeleteFournisseur);
 router.post('/fournisseur/:id/delete', AdminController.deleteFournisseur);
+router.post('/fournisseur/:id/generate-access', AdminController.generateFournisseurAccess);
 router.get('/download-logs-pdf', AdminController.downloadLogsPDF);
 
 module.exports = router;

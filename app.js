@@ -93,6 +93,7 @@ app.use('/profile', require('./route/profileRoutes'));
 app.use('/settings', require('./route/settingsRoutes'));
 app.use('/gestionnaire/stocks', require('./route/gestionnaireStockRoutes'));
 app.use('/gestionnaire/alertes', require('./route/gestionnaireAlerteRoutes'));
+app.use('/gestionnaire/entrepots', require('./route/gestionnaireEntrepotRoutes'));
 app.use('/matieres', require('./route/matierePremiereRoutes'));
 
 // Après les autres app.use
@@ -134,10 +135,12 @@ const { ensureCommandeStatutsEnum } = require('./utils/migrateCommandeStatuts');
 const { ensureMouvementStockDeltaColumn } = require('./utils/migrateMouvementStockDelta');
 const { ensureFournisseurMatiereTable } = require('./utils/migrateFournisseurMatiere');
 const { ensureNotificationTable } = require('./utils/migrateNotifications');
+const { ensureMustChangePasswordColumn } = require('./utils/migrateMustChangePassword');
 ensureCommandeStatutsEnum();
 ensureMouvementStockDeltaColumn();
 ensureFournisseurMatiereTable();
 ensureNotificationTable();
+ensureMustChangePasswordColumn();
 
 const PORT = parseInt(process.env.PORT, 10) || 4000;
 const HOST = process.env.IP || '::';

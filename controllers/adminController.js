@@ -3,6 +3,7 @@ const db = require('../config/db');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const Mailer = require('../utils/mailer');
 
 class AdminController {
   static async dashboard(req, res) {
@@ -101,19 +102,57 @@ class AdminController {
   static async createFournisseur(req, res) {
     try {
       const { idmp, prix_kg } = req.body;
-      const idfournisseur = await AdminModel.createFournisseur(req.body);
-      
+      const { idfournisseur, tempPassword } = await AdminModel.createFournisseur(req.body);
+
       if (idfournisseur && idmp && prix_kg) {
         await db.execute(
           `INSERT INTO fournisseur_matiere (idfournisseur, idmp, prix_kg) VALUES (?, ?, ?)`,
           [idfournisseur, idmp, parseFloat(prix_kg) || 0]
         );
       }
-      
-      res.redirect('/admin/dashboard?success=Fournisseur ajouté');
+
+      // Envoi de l'email de bienvenue avec le mot de passe temporaire
+      if (req.body.email && tempPassword) {
+        try {
+          await Mailer.sendCredentialsFournisseur(req.body.email, {
+            raisonsocial: req.body.raisonsocial,
+            motdepasseTemp: tempPassword
+          });
+        } catch (emailErr) {
+          console.error('Email credentials fournisseur (non bloquant):', emailErr.message);
+          console.log(`📧 Mot de passe temporaire pour ${req.body.email} : ${tempPassword}`);
+        }
+      }
+
+      res.redirect('/admin/dashboard?success=Fournisseur ajouté avec succès');
     } catch (err) {
       console.error(err);
-      res.status(500).send('Erreur lors de l’ajout du fournisseur');
+      res.status(500).send('Erreur lors de l\'ajout du fournisseur');
+    }
+  }
+
+  // Génère ou régénère les accès portail pour un fournisseur existant
+  static async generateFournisseurAccess(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await AdminModel.generateFournisseurAccess(id);
+
+      // Envoi de l'email de bienvenue
+      try {
+        await Mailer.sendCredentialsFournisseur(result.email, {
+          raisonsocial: result.raisonsocial,
+          motdepasseTemp: result.tempPassword
+        });
+        console.log(`✅ Accès portail générés et email envoyé à ${result.email}`);
+      } catch (emailErr) {
+        console.error('Email credentials fournisseur (non bloquant):', emailErr.message);
+        console.log(`📧 Mot de passe temporaire pour ${result.email} : ${result.tempPassword}`);
+      }
+
+      res.redirect(`/admin/fournisseur/${id}?success=Accès portail générés — email envoyé à ${result.email}`);
+    } catch (err) {
+      console.error(err);
+      res.redirect(`/admin/fournisseur/${req.params.id}?error=${encodeURIComponent(err.message)}`);
     }
   }
 

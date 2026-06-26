@@ -10,17 +10,19 @@ class StockController {
     const stocks = await StockModel.findAllWithDetails();
     const matieres = await MatierePremiereModel.findAll();
 
+    // Group stocks by idmp to calculate total available per raw material
+    const mpStocksMap = {};
+    stocks.forEach(s => {
+      mpStocksMap[s.idmp] = (mpStocksMap[s.idmp] || 0) + (Number(s.qtedisponible) || 0);
+    });
+
     const stats = {
       totalMatierePremieres: matieres.length,
       stockTotal: stocks.reduce((sum, stock) => sum + (Number(stock.qtedisponible) || 0), 0),
-      stockCritique: stocks.filter(
-        (stock) => Number(stock.qtedisponible) <= Number(stock.seuilcritique || 0)
-      ).length,
-      stockAlerte: stocks.filter((stock) => {
-        const qte = Number(stock.qtedisponible) || 0;
-        const critique = Number(stock.seuilcritique) || 0;
-        const alerte = Number(stock.seuilalerte) || 0;
-        return qte <= alerte && qte > critique;
+      stockCritique: matieres.filter(m => (mpStocksMap[m.idmp] || 0) <= Number(m.seuilcritique || 5)).length,
+      stockAlerte: matieres.filter(m => {
+        const qte = mpStocksMap[m.idmp] || 0;
+        return qte <= Number(m.seuilalerte || 10) && qte > Number(m.seuilcritique || 5);
       }).length,
       valeurTotale: 0,
     };
@@ -63,7 +65,7 @@ class StockController {
                  f.raisonsocial AS fournisseur_nom
           FROM commande c
           LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur
-          WHERE c.statut IN ('approuvee', 'en_cours', 'livree', 'envoyee', 'en_cours_de_livraison')
+          WHERE c.statut IN ('approuvee', 'en_cours', 'envoyee', 'en_cours_de_livraison')
           ORDER BY c.datecreation DESC
         `
         )
@@ -196,7 +198,7 @@ class StockController {
           await NotificationModel.create({
             role_libelle: 'gestionnaire',
             titre: 'Réception de marchandise',
-            description: `Le magasinier a réceptionné ${quantiteRecue} unité(s) pour la commande n°${idcommande}.`
+            description: `Le magasinier a réceptionné ${quantiteRecue} Kg pour la commande n°${idcommande}.`
           });
         } catch (notifErr) {
           console.error('Erreur notification réception (non bloquante):', notifErr);
@@ -259,7 +261,7 @@ class StockController {
 
       req.flash(
         'success',
-        `Réception enregistrée : ${quantiteRecue} unité(s) ajoutée(s) au stock.`
+        `Réception enregistrée : ${quantiteRecue} Kg ajoutés au stock.`
       );
       return res.redirect('/magasinier/dashboard');
     } catch (err) {
@@ -393,7 +395,7 @@ class StockController {
 
       await StockController.logAuditStock(req, 'SORTIE_PRODUCTION', motif);
 
-      req.flash('success', `Sortie production enregistrée : ${q} unité(s). Les seuils d’alerte reflètent désormais ce mouvement.`);
+      req.flash('success', `Sortie production enregistrée : ${q} Kg. Les seuils d’alerte reflètent désormais ce mouvement.`);
       res.redirect('/magasinier/mouvements');
     } catch (err) {
       console.error(err);
@@ -463,10 +465,10 @@ class StockController {
       await StockController.logAuditStock(
         req,
         'TRANSFERT_STOCK',
-        `Transfert ${q} unités MP ${src.libelle || src.idmp} · Réf. ${ref}`
+        `Transfert ${q} Kg MP ${src.libelle || src.idmp} · Réf. ${ref}`
       );
 
-      req.flash('success', `Transfert enregistré : ${q} unité(s) vers l’entrepôt de destination.`);
+      req.flash('success', `Transfert enregistré : ${q} Kg vers l’entrepôt de destination.`);
       res.redirect('/magasinier/mouvements');
     } catch (err) {
       console.error(err);

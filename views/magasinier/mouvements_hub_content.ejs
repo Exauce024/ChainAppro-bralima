@@ -71,7 +71,7 @@
             <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold border <%= badgeBg %>"><%= typeLabel %></span>
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-gray-900">
-                <%= isPlus ? '+' : '' %><%= delta %> unités · <%= m.matiere %>
+                <%= isPlus ? '+' : '' %><%= delta %> Kg · <%= m.matiere %>
               </p>
               <p class="text-sm text-gray-600 truncate"><%= m.motif || '—' %></p>
               <p class="text-xs text-gray-400 mt-1"><%= m.entrepot_nom %> <% if (m.idcommande) { %> · Cmd n°<%= m.idcommande %><% } %></p>

@@ -7,7 +7,7 @@ class DashboardModel {
         (SELECT COUNT(*) FROM commande WHERE statut = 'en_attente') as commandes_en_attente,
         (SELECT COUNT(*) FROM commande WHERE statut = 'approuvee') as commandes_approuvees,
         (SELECT COUNT(*) FROM commande WHERE statut = 'livree') as commandes_livrees,
-        (SELECT SUM(qtedisponible) FROM stock) as stock_total,
+        (SELECT COUNT(DISTINCT idmp) FROM stock WHERE qtedisponible > 0) as matieres_en_stock,
         (SELECT COUNT(*) FROM alertepredictive WHERE statut = 'active') as alertes_actives
     `);
     return kpis[0];
@@ -15,7 +15,13 @@ class DashboardModel {
 
   static async getAlertesActives() {
     const [alertes] = await db.execute(`
-      SELECT a.*, mp.libellé as matiere
+      SELECT a.idalert, a.idmp, a.message, a.datecreation, a.statut, a.niveauurgence,
+             CASE 
+               WHEN a.typealerte = 'seuil_critique' THEN 'seuil critique'
+               WHEN a.typealerte = 'stock_faible' THEN 'seuil alerte'
+               ELSE a.typealerte
+             END AS typealerte,
+             mp.libellé as matiere
       FROM alertepredictive a
       JOIN matièrepremiere mp ON a.idmp = mp.idmp
       WHERE a.statut = 'active'
@@ -50,7 +56,7 @@ class DashboardModel {
   }
 
   static async genererAlertes() {
-    // Logique simple de génération d'alertes (peut être lancée via cron plus tard)
+    // Logique de génération d'alertes avec transition d'états
     const [matieres] = await db.execute(`
       SELECT mp.idmp, mp.libellé, mp.seuilcritique, mp.seuilalerte,
              COALESCE(SUM(s.qtedisponible), 0) as stock_actuel
@@ -60,8 +66,15 @@ class DashboardModel {
     `);
 
     for (const m of matieres) {
-      if (m.stock_actuel <= m.seuilcritique && m.stock_actuel > 0) {
-        // Vérifier si une alerte critique existe déjà pour cette matière
+      if (m.seuilcritique !== null && m.stock_actuel <= m.seuilcritique) {
+        // Désactiver l'alerte d'avertissement 'stock_faible' si elle existe
+        await db.execute(`
+          UPDATE alertepredictive 
+          SET statut = 'traitee', date_traitement = CURRENT_TIMESTAMP 
+          WHERE idmp = ? AND typealerte = 'stock_faible' AND statut = 'active'
+        `, [m.idmp]);
+
+        // Vérifier si une alerte critique existe déjà
         const [existingAlert] = await db.execute(`
           SELECT idalert FROM alertepredictive 
           WHERE idmp = ? AND typealerte = 'seuil_critique' AND statut = 'active'
@@ -71,10 +84,17 @@ class DashboardModel {
           await db.execute(`
             INSERT INTO alertepredictive (idmp, typealerte, niveauurgence, message, statut)
             VALUES (?, 'seuil_critique', 'haute', ?, 'active')
-          `, [m.idmp, `Stock critique pour ${m.libellé} : ${m.stock_actuel} unités restantes`]);
+          `, [m.idmp, `Stock critique pour ${m.libellé} : ${m.stock_actuel} Kg restants`]);
         }
-      } else if (m.stock_actuel <= m.seuilalerte) {
-        // Vérifier si une alerte de stock faible existe déjà pour cette matière
+      } else if (m.seuilalerte !== null && m.stock_actuel <= m.seuilalerte) {
+        // Désactiver l'alerte critique 'seuil_critique' si elle existe (ex: stock réapprovisionné partiellement)
+        await db.execute(`
+          UPDATE alertepredictive 
+          SET statut = 'traitee', date_traitement = CURRENT_TIMESTAMP 
+          WHERE idmp = ? AND typealerte = 'seuil_critique' AND statut = 'active'
+        `, [m.idmp]);
+
+        // Vérifier si une alerte d'avertissement existe déjà
         const [existingAlert] = await db.execute(`
           SELECT idalert FROM alertepredictive 
           WHERE idmp = ? AND typealerte = 'stock_faible' AND statut = 'active'
@@ -86,6 +106,13 @@ class DashboardModel {
             VALUES (?, 'stock_faible', 'moyenne', ?, 'active')
           `, [m.idmp, `Alerte stock faible pour ${m.libellé}`]);
         }
+      } else {
+        // Le stock est suffisant, désactiver toutes les alertes de stock pour cette matière
+        await db.execute(`
+          UPDATE alertepredictive 
+          SET statut = 'traitee', date_traitement = CURRENT_TIMESTAMP 
+          WHERE idmp = ? AND typealerte IN ('stock_faible', 'seuil_critique') AND statut = 'active'
+        `, [m.idmp]);
       }
     }
   }

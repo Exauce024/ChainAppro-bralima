@@ -48,4 +48,17 @@ const redirectByRole = (req, res, next) => {
   next();
 };
 
-module.exports = { isAuthenticated, hasRole, redirectByRole, normalizeRole, roleMatches };
+// Middleware qui force le changement de mot de passe si must_change_password = 1
+const mustChangePassword = (req, res, next) => {
+  if (
+    req.session.user &&
+    req.session.user.must_change_password &&
+    req.path !== '/change-password' &&
+    req.path !== '/logout'
+  ) {
+    return res.redirect('/change-password');
+  }
+  next();
+};
+
+module.exports = { isAuthenticated, hasRole, redirectByRole, normalizeRole, roleMatches, mustChangePassword };

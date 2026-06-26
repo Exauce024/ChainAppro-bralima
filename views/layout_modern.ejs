@@ -219,6 +219,12 @@
                 <span>Alertes</span>
               </a>
             </li>
+            <li>
+              <a href="/gestionnaire/entrepots" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
+                <i class="fas fa-warehouse w-5 mr-3"></i>
+                <span>Entrepôts</span>
+              </a>
+            </li>
           <% } else if (isNavMagasinier) { %>
             <li>
               <a href="/magasinier/dashboard" class="sidebar-item flex items-center p-4 rounded-lg text-white/80 hover:text-white">
@@ -416,6 +422,8 @@
           <%- include('gestionnaire/stocks_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Détails du Stock') { %>
           <%- include('gestionnaire/stock_details_content') %>
+        <% } else if (typeof title !== 'undefined' && title === 'Gestion des Entrepôts') { %>
+          <%- include('gestionnaire/entrepots_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Commandes') { %>
           <%- include('commande/commandes_content') %>
         <% } else if (typeof title !== 'undefined' && title === 'Créer une nouvelle commande') { %>

@@ -75,7 +75,7 @@ var content = `
           <tr class="hover:bg-slate-50 transition-colors">
             <td class="px-6 py-4 font-medium text-slate-800">${stock.matiere}</td>
             <td class="px-6 py-4">
-              <span class="text-lg font-bold ${stockStatus === 'critique' ? 'text-red-600' : stockStatus === 'alerte' ? 'text-amber-600' : 'text-slate-800'}">${stock.qtedisponible}</span>
+              <span class="text-lg font-bold ${stockStatus === 'critique' ? 'text-red-600' : stockStatus === 'alerte' ? 'text-amber-600' : 'text-slate-800'}">${stock.qtedisponible} Kg</span>
             </td>
             <td class="px-6 py-4 text-slate-600">${stock.entrepot_nom || stock.entrepot_dispo || 'N/A'}</td>
             <td class="px-6 py-4 text-slate-600 text-sm">${stock.datemaj}</td>

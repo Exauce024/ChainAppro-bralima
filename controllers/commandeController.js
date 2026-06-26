@@ -3,7 +3,6 @@ const CommandeModel = require('../models/commandeModel');
 const FournisseurModel = require('../models/fournisseurModel');
 const MatierePremiereModel = require('../models/matierePremiereModel');
 const Mailer = require('../utils/mailer');
-const crypto = require('crypto');
 const db = require('../config/db');
 const { normalizeStatut, canConfirmDelivery } = require('../utils/commandeStatuts');
 const {
@@ -145,33 +144,16 @@ class CommandeController {
         console.error('PDF bon de commande (non bloquant):', pdfErr);
       }
 
-      // E-mail unique fournisseur : récap + lien portail + PJ bon de commande (si PDF OK)
-      const token = crypto.randomBytes(32).toString('hex');
-      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
-      await db.execute(
-        `INSERT INTO magicklink (token, idfournisseur, idcommande, dateexpiration) 
-         VALUES (?, ?, ?, ?)`,
-        [token, idfournisseur, idcommande, expires]
-      );
-
-      const magicLinkUrl = `${process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`}/fournisseur/magic-access?token=${token}`;
-      console.log('==========================================');
-      console.log('MAGIC LINK POUR FOURNISSEUR:');
-      console.log(magicLinkUrl);
-      console.log('==========================================');
-
       const fournisseur = await FournisseurModel.getWithEmail(idfournisseur);
       if (fournisseur && fournisseur.email) {
         try {
           await Mailer.sendNouvelleCommandeFournisseur(fournisseur.email, {
-            token,
             idcommande,
             reference,
             bonCommandePdfPath: bonCommandePath,
           });
         } catch (emailErr) {
           console.error('Erreur email (non bloquant):', emailErr);
-          console.log('Email non configuré - Magic link disponible dans la console');
         }
       }
 
@@ -357,19 +339,8 @@ class CommandeController {
       if (commande && (commande.statut === 'en_attente' || commande.statut === 'approuvee')) {
         const fournisseur = await FournisseurModel.getWithEmail(commande.idfournisseur);
         if (fournisseur && fournisseur.email) {
-          // Génération du token d'accès magique
-          const token = crypto.randomBytes(32).toString('hex');
-          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
-          
-          // Enregistrer le token dans la BDD
-          await db.execute(
-            `INSERT INTO magicklink (token, idfournisseur, idcommande, dateexpiration) 
-             VALUES (?, ?, ?, ?)`,
-            [token, commande.idfournisseur, commande.idcommande, expires]
-          );
-
-          // Envoi de l'e-mail de relance
-          await Mailer.sendMagicLink(fournisseur.email, token, commande.idcommande);
+          // Envoi de l'email de relance (sans magic link)
+          await Mailer.sendRelanceFournisseur(fournisseur.email, commande.idcommande, commande.reference);
         }
 
         if (isAjax) {

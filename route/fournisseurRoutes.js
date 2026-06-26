@@ -3,7 +3,6 @@ const router = express.Router();
 const FournisseurController = require('../controllers/fournisseurController');
 
 router.get('/', (req, res) => res.redirect('/fournisseur/dashboard'));
-router.get('/magic-access', FournisseurController.magicAccess);
 router.get('/dashboard', FournisseurController.dashboard);
 router.get('/commandes', FournisseurController.commandesList);
 router.get('/documents', (req, res) => res.redirect('/fournisseur/dashboard'));

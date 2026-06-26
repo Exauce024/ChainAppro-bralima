@@ -1,11 +1,10 @@
 const cron = require('node-cron');
 const db = require('../config/db');
 const Mailer = require('./mailer');
-const crypto = require('crypto');
 
 class CronJobs {
   static init() {
-    // Relance automatique toutes les 24 heures (à 9h du matin par exemple)
+    // Relance automatique toutes les 24 heures (à 9h du matin)
     cron.schedule('0 9 * * *', async () => {
       console.log('🔄 Exécution de la relance automatique...');
 
@@ -19,16 +18,8 @@ class CronJobs {
         `);
 
         for (const cmd of commandesEnAttente) {
-          const token = crypto.randomBytes(64).toString('hex');
-          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-          await db.execute(
-            `INSERT INTO magicklink (token, idfournisseur, idcommande, dateexpiration) 
-             VALUES (?, ?, ?, ?)`,
-            [token, cmd.idfournisseur, cmd.idcommande, expires]
-          );
-
-          await Mailer.sendMagicLink(cmd.email, token, cmd.idcommande);
+          // Envoi d'un simple email de relance (plus de magic link)
+          await Mailer.sendRelanceFournisseur(cmd.email, cmd.idcommande, cmd.reference);
 
           // Log audit
           await db.execute(

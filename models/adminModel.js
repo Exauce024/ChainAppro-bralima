@@ -79,23 +79,92 @@ class AdminModel {
     );
   }
 
+  static generateTempPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pwd;
+  }
+
   static async createFournisseur(data) {
     const { raisonsocial, libellé, telephone, email, adresse, contact_nom, delai_livraison } = data;
 
+    // 1. Créer le fournisseur
     const [result] = await db.execute(
       `INSERT INTO fournisseur (raisonsocial, libellé, telephone, email, adresse, contact_nom, delai_livraison) 
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [raisonsocial, libellé, telephone, email, adresse, contact_nom, delai_livraison]
     );
+    const idfournisseur = result.insertId;
+
+    // 2. Créer le compte users associé si email fourni
+    let tempPassword = null;
+    if (email) {
+      tempPassword = AdminModel.generateTempPassword();
+      const hashed = await bcrypt.hash(tempPassword, 12);
+
+      // Récupérer le role_id fournisseur
+      const [roleRows] = await db.execute(`SELECT idrole FROM role WHERE libellé = 'fournisseur' LIMIT 1`);
+      const roleId = roleRows.length > 0 ? roleRows[0].idrole : null;
+
+      // Vérifier si un compte existe déjà pour cet email
+      const [existingUser] = await db.execute(`SELECT idusers FROM users WHERE email = ? LIMIT 1`, [email]);
+      if (existingUser.length === 0) {
+        await db.execute(
+          `INSERT INTO users (nom, prenom, email, motdepasse, telephone, role_id, statut, must_change_password)
+           VALUES (?, ?, ?, ?, ?, ?, 'actif', 1)`,
+          [raisonsocial, contact_nom || '', email, hashed, telephone, roleId]
+        );
+      }
+    }
 
     await db.execute(
-      `INSERT INTO logaudit (iduser, action, module, detaillson) 
-       VALUES (NULL, 'CREATE_FOURNISSEUR', 'ADMIN', ?)`,
+      `INSERT INTO logaudit (iduser, action, module, detaillson) VALUES (NULL, 'CREATE_FOURNISSEUR', 'ADMIN', ?)`,
       [`Nouveau fournisseur créé : ${raisonsocial}`]
     );
 
-    return result.insertId;
+    return { idfournisseur, tempPassword };
   }
+
+  // Génère ou régénère les accès portail pour un fournisseur existant
+  static async generateFournisseurAccess(idfournisseur) {
+    const [rows] = await db.execute(`SELECT * FROM fournisseur WHERE idfournisseur = ?`, [idfournisseur]);
+    if (rows.length === 0) throw new Error('Fournisseur introuvable');
+    const f = rows[0];
+
+    if (!f.email) throw new Error('Ce fournisseur n\'a pas d\'adresse email enregistrée');
+
+    const tempPassword = AdminModel.generateTempPassword();
+    const hashed = await bcrypt.hash(tempPassword, 12);
+
+    const [roleRows] = await db.execute(`SELECT idrole FROM role WHERE libellé = 'fournisseur' LIMIT 1`);
+    const roleId = roleRows.length > 0 ? roleRows[0].idrole : null;
+
+    const [existingUser] = await db.execute(`SELECT idusers FROM users WHERE email = ? LIMIT 1`, [f.email]);
+    if (existingUser.length > 0) {
+      // Mettre à jour le mot de passe et forcer le changement
+      await db.execute(
+        `UPDATE users SET motdepasse = ?, must_change_password = 1, role_id = ?, statut = 'actif' WHERE email = ?`,
+        [hashed, roleId, f.email]
+      );
+    } else {
+      await db.execute(
+        `INSERT INTO users (nom, prenom, email, motdepasse, telephone, role_id, statut, must_change_password)
+         VALUES (?, ?, ?, ?, ?, ?, 'actif', 1)`,
+        [f.raisonsocial, f.contact_nom || '', f.email, hashed, f.telephone, roleId]
+      );
+    }
+
+    await db.execute(
+      `INSERT INTO logaudit (iduser, action, module, detaillson) VALUES (NULL, 'GENERATE_ACCESS', 'ADMIN', ?)`,
+      [`Accès portail générés pour fournisseur ${idfournisseur} (${f.raisonsocial})`]
+    );
+
+    return { email: f.email, tempPassword, raisonsocial: f.raisonsocial };
+  }
+
 
   static async getAuditLogs(limit = 100) {
     const parsedLimit = parseInt(limit, 10) || 100;

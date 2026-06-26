@@ -36,7 +36,7 @@ class CommandeModel {
     const [rows] = await db.execute(`
       SELECT c.*, f.raisonsocial, c.prixtotal AS total,
              GROUP_CONCAT(mp.libellé SEPARATOR ', ') AS matieres,
-             GROUP_CONCAT(lc.qtecommande SEPARATOR ', ') AS quantites
+             GROUP_CONCAT(CONCAT(lc.qtecommande, ' Kg') SEPARATOR ', ') AS quantites
       FROM commande c 
       LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur 
       LEFT JOIN lignecommande lc ON c.idcommande = lc.idcommande
@@ -50,7 +50,7 @@ class CommandeModel {
   static async findById(id) {
     const [rows] = await db.execute(`
       SELECT c.*, f.raisonsocial,
-             GROUP_CONCAT(CONCAT(mp.libellé, ' (', lc.qtecommande, ' x ', lc.prixunitaire, ')') SEPARATOR ' | ') as details_lignes
+             GROUP_CONCAT(CONCAT(mp.libellé, ' (', lc.qtecommande, ' Kg x ', lc.prixunitaire, ')') SEPARATOR ' | ') as details_lignes
       FROM commande c 
       LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur
       LEFT JOIN lignecommande lc ON c.idcommande = lc.idcommande
@@ -151,7 +151,7 @@ class CommandeModel {
            VALUES (?, 'CONFIRMER_LIVRAISON', 'COMMANDE', ?)`,
           [
             iduser,
-            `Commande ${idcommande} livrée par le fournisseur — stock crédité (+${stockCredits.totalUnits} unités sur ${stockCredits.linesUpdated} article(s))`,
+            `Commande ${idcommande} livrée par le fournisseur — stock crédité (+${stockCredits.totalUnits} Kg sur ${stockCredits.linesUpdated} article(s))`,
           ]
         );
       } catch (auditErr) {
@@ -174,7 +174,7 @@ module.exports = CommandeModel;
 CommandeModel.findByFournisseur = async function(idfournisseur) {
   const [rows] = await db.execute(`
     SELECT c.*, c.prixtotal AS total, c.prixtotal AS montant,
-           GROUP_CONCAT(CONCAT(mp.libellé, ' x ', lc.qtecommande) SEPARATOR ' | ') as details
+           GROUP_CONCAT(CONCAT(mp.libellé, ' x ', lc.qtecommande, ' Kg') SEPARATOR ' | ') as details
     FROM commande c
     LEFT JOIN lignecommande lc ON c.idcommande = lc.idcommande
     LEFT JOIN matièrepremiere mp ON lc.idmp = mp.idmp

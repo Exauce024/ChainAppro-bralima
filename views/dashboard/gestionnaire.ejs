@@ -44,15 +44,15 @@ var content = `
     <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg card-hover transition-all duration-300">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-emerald-100 text-sm font-medium">Stock total</p>
-          <p class="text-3xl font-bold mt-2">${kpis.stock_total}</p>
+          <p class="text-emerald-100 text-sm font-medium">Matières en stock</p>
+          <p class="text-3xl font-bold mt-2">${kpis.matieres_en_stock}</p>
         </div>
         <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-          <i class="fas fa-boxes text-2xl"></i>
+          <i class="fas fa-cubes text-2xl"></i>
         </div>
       </div>
       <div class="mt-4 flex items-center text-emerald-100 text-sm">
-        <span>unités disponibles</span>
+        <span>matières uniques</span>
       </div>
     </div>
     
@@ -163,10 +163,10 @@ var content = `
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 font-medium text-slate-800">${s.libellé}</td>
               <td class="px-6 py-4">
-                <span class="text-lg font-bold ${s.qtedisponible <= s.seuilcritique ? 'text-red-600' : 'text-orange-600'}">${s.qtedisponible}</span>
+                <span class="text-lg font-bold ${s.qtedisponible <= s.seuilcritique ? 'text-red-600' : 'text-orange-600'}">${s.qtedisponible} Kg</span>
               </td>
-              <td class="px-6 py-4 text-slate-600">${s.seuilalerte}</td>
-              <td class="px-6 py-4 text-slate-600">${s.seuilcritique}</td>
+              <td class="px-6 py-4 text-slate-600">${s.seuilalerte !== null && s.seuilalerte !== undefined ? s.seuilalerte + ' Kg' : 'N/A'}</td>
+              <td class="px-6 py-4 text-slate-600">${s.seuilcritique !== null && s.seuilcritique !== undefined ? s.seuilcritique + ' Kg' : 'N/A'}</td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${s.qtedisponible <= s.seuilcritique ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}">
                   ${s.qtedisponible <= s.seuilcritique ? 'Critique' : 'Alerte'}
