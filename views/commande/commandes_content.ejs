@@ -164,18 +164,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
                   <a href="/commandes/<%= commande.idcommande %>" class="text-blue-600 hover:text-blue-900">Voir</a>
-                  <% if (commande.statut === 'en_attente') { %>
-                    <form method="POST" action="/commandes/<%= commande.idcommande %>/statut" class="inline">
-                      <input type="hidden" name="statut" value="approuvee">
-                      <button type="submit" class="text-green-600 hover:text-green-900">Approuver</button>
-                    </form>
-                  <% } %>
-                  <% if (commande.statut === 'approuvee') { %>
-                    <form method="POST" action="/commandes/<%= commande.idcommande %>/statut" class="inline">
-                      <input type="hidden" name="statut" value="en_cours">
-                      <button type="submit" class="text-amber-600 hover:text-amber-900">Démarrer</button>
-                    </form>
-                  <% } %>
                   <% if (commande.statut === 'en_attente' || commande.statut === 'approuvee') { %>
                     <form method="POST" action="/commandes/<%= commande.idcommande %>/relancer" class="inline form-relancer" data-id="<%= commande.idcommande %>">
                       <button type="submit" class="text-red-600 hover:text-red-900">Relancer</button>
