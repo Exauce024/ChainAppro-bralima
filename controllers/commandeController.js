@@ -4,7 +4,7 @@ const FournisseurModel = require('../models/fournisseurModel');
 const MatierePremiereModel = require('../models/matierePremiereModel');
 const Mailer = require('../utils/mailer');
 const db = require('../config/db');
-const { normalizeStatut, canConfirmDelivery } = require('../utils/commandeStatuts');
+const { normalizeStatut, canConfirmDelivery, canDownloadTransportPdf } = require('../utils/commandeStatuts');
 const {
   generateBonCommandePdf,
   generateBonLivraisonPdf,
@@ -176,7 +176,8 @@ class CommandeController {
     if (!commande) return res.status(404).send('Commande non trouvée');
     const lignes = await CommandeModel.getLignes(req.params.id);
     const montant = CommandeModel.computeMontantTotal(lignes);
-    const bonTransportDisponible = canConfirmDelivery(commande.statut);
+    // Bon de transport disponible seulement à partir de 'approuvee' (pas dès en_attente)
+    const bonTransportDisponible = canDownloadTransportPdf(commande.statut);
 
     res.render('layout_modern', {
       commande: { ...commande, montant },
