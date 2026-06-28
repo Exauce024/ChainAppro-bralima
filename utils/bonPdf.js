@@ -2,8 +2,20 @@ const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit');
 const CommandeModel = require('../models/commandeModel');
-const { formatMoney } = require('./currency');
 const { normalizeStatut } = require('./commandeStatuts');
+
+/**
+ * Formatte un montant en francs congolais pour les PDF.
+ * N'utilise pas Intl.NumberFormat (comportement inconsistant selon l'OS/locale du serveur).
+ * Ex: 1000000 => "1.000.000 FC"
+ */
+function pdfFormatMoney(amount) {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) return '— FC';
+  // Arrondi sans décimales, séparateur de milliers = point
+  const parts = Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${parts} FC`;
+}
 
 const STORAGE_ROOT = path.join(__dirname, '..', 'storage', 'bons');
 
@@ -101,8 +113,8 @@ function drawLigneTable(doc, lignes, { qtyKey, title, themeColor = '#1e3a8a' }) 
     const label = ligne.libelle || ligne.description || `MP #${ligne.idmp}`;
     doc.text(label.substring(0, 48), x1 + 5, y, { width: x2 - x1 - 15 });
     doc.text(String(q) + ' Kg', x2, y);
-    doc.text(formatMoney(pu), x3, y);
-    doc.text(formatMoney(lineTotal), x4, y);
+    doc.text(pdfFormatMoney(pu), x3, y);
+    doc.text(pdfFormatMoney(lineTotal), x4, y);
     y += 20;
     
     // Line under each row
@@ -167,7 +179,7 @@ async function generateBonCommandePdf(idcommande) {
 
   drawLigneTable(doc, lignes, { qtyKey: 'qtecommande', title: 'Détail des lignes', themeColor: '#1e3a8a' });
 
-  doc.font('Helvetica-Bold').fontSize(11).fillColor('#1e3a8a').text(`Total : ${formatMoney(montantTotal)}`, { align: 'right' });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#1e3a8a').text(`Total : ${pdfFormatMoney(montantTotal)}`, { align: 'right' });
   doc.moveDown(2);
   doc.fontSize(8).font('Helvetica').fillColor('#64748b');
   doc.text('Document émis automatiquement à la création de la commande par le système BRALIMA Supply Chain.', { align: 'left' });
@@ -234,7 +246,7 @@ async function generateBonLivraisonPdf(idcommande) {
 
   drawLigneTable(doc, lignes, { qtyKey: 'qtelivrée', title: 'Marchandises livrées', themeColor: '#10b981' });
 
-  doc.font('Helvetica-Bold').fontSize(11).fillColor('#10b981').text(`Montant livré : ${formatMoney(montantTotal)}`, { align: 'right' });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#10b981').text(`Montant livré : ${pdfFormatMoney(montantTotal)}`, { align: 'right' });
   doc.moveDown(2);
   doc.fontSize(8).font('Helvetica').fillColor('#64748b');
   doc.text('Document émis automatiquement suite à la réception effective de la marchandise à l\'entrepôt.', { align: 'left' });
@@ -303,7 +315,7 @@ async function generateBonTransportPdf(idcommande) {
 
   drawLigneTable(doc, lignes, { qtyKey: 'qtecommande', title: 'Marchandises prévues à l’expédition', themeColor: '#d97706' });
 
-  doc.font('Helvetica-Bold').fontSize(11).fillColor('#d97706').text(`Montant (réf.) : ${formatMoney(montantTotal)}`, { align: 'right' });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#d97706').text(`Montant (réf.) : ${pdfFormatMoney(montantTotal)}`, { align: 'right' });
   doc.moveDown(2);
   doc.fontSize(8).font('Helvetica').fillColor('#64748b');
   doc.text('Ce document de transport doit obligatoirement accompagner le chauffeur durant le trajet vers la brasserie BRALIMA.', { align: 'left' });
