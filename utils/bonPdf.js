@@ -170,8 +170,8 @@ async function generateBonCommandePdf(idcommande) {
   doc.moveDown(0.4);
   doc.text(`Nom : ${commande.raisonsocial || '—'}`);
   if (commande.contact_nom) doc.text(`Contact : ${commande.contact_nom}`);
-  if (commande.telephone) doc.text(`Téléphone : ${commande.telephone}`);
-  if (commande.email) doc.text(`Email : ${commande.email}`);
+  if (commande.fournisseur_telephone) doc.text(`Téléphone : ${commande.fournisseur_telephone}`);
+  if (commande.fournisseur_email) doc.text(`Email : ${commande.fournisseur_email}`);
   
   doc.y = Math.max(doc.y, startY + 80);
   doc.x = 50;
@@ -237,8 +237,8 @@ async function generateBonLivraisonPdf(idcommande) {
   doc.moveDown(0.4);
   doc.text(`Nom : ${commande.raisonsocial || '—'}`);
   if (commande.contact_nom) doc.text(`Contact : ${commande.contact_nom}`);
-  if (commande.telephone) doc.text(`Téléphone : ${commande.telephone}`);
-  if (commande.email) doc.text(`Email : ${commande.email}`);
+  if (commande.fournisseur_telephone) doc.text(`Téléphone : ${commande.fournisseur_telephone}`);
+  if (commande.fournisseur_email) doc.text(`Email : ${commande.fournisseur_email}`);
   
   doc.y = Math.max(doc.y, startY + 80);
   doc.x = 50;
@@ -306,8 +306,8 @@ async function generateBonTransportPdf(idcommande) {
   doc.moveDown(0.4);
   doc.text(`Nom : ${commande.raisonsocial || '—'}`);
   if (commande.contact_nom) doc.text(`Contact : ${commande.contact_nom}`);
-  if (commande.telephone) doc.text(`Téléphone : ${commande.telephone}`);
-  if (commande.email) doc.text(`Email : ${commande.email}`);
+  if (commande.fournisseur_telephone) doc.text(`Téléphone : ${commande.fournisseur_telephone}`);
+  if (commande.fournisseur_email) doc.text(`Email : ${commande.fournisseur_email}`);
   
   doc.y = Math.max(doc.y, startY + 80);
   doc.x = 50;

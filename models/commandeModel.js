@@ -49,7 +49,11 @@ class CommandeModel {
 
   static async findById(id) {
     const [rows] = await db.execute(`
-      SELECT c.*, f.raisonsocial,
+      SELECT c.*, 
+             f.raisonsocial    AS raisonsocial,
+             f.contact_nom     AS contact_nom,
+             f.telephone       AS fournisseur_telephone,
+             f.email           AS fournisseur_email,
              GROUP_CONCAT(CONCAT(mp.libellé, ' (', lc.qtecommande, ' Kg x ', lc.prixunitaire, ')') SEPARATOR ' | ') as details_lignes
       FROM commande c 
       LEFT JOIN fournisseur f ON c.idfournisseur = f.idfournisseur
