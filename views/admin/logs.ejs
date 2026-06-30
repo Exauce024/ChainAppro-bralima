@@ -63,7 +63,6 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Détails</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
@@ -111,10 +110,6 @@
                       <%= log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système' %>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= log.ip_address || '---' %>
               </td>
               <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate" title="<%= log.detaillson %>">
                 <%= log.detaillson %>
@@ -275,9 +270,6 @@ function updateLogsTable(logs) {
           </div>
         </div>
       </td>
-      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        ${log.ip_address || '---'}
-      </td>
       <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate" title="${log.detaillson}">
         ${log.detaillson}
       </td>
@@ -299,10 +291,10 @@ function updateLogsTable(logs) {
 // Export to CSV function
 function exportCSV() {
   const logs = logsData;
-  let csv = '\uFEFFID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
+  let csv = '\uFEFFID,Date/Heure,Action,Module,Utilisateur,Détails\n';
   
   logs.forEach(function(log) {
-    csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.ip_address || ''}","${log.detaillson.replace(/"/g, '""')}"\n`;
+    csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.detaillson.replace(/"/g, '""')}"\n`;
   });
   
   // Create blob and download
@@ -326,7 +318,7 @@ function printLogs() {
 function viewLogDetails(logId) {
   const log = logsData.find(l => l.idlogaudit == logId);
   if (log) {
-    alert(`Détails du log #${logId}\n\nAction: ${log.action}\nModule: ${log.module || '---'}\nUtilisateur: ${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}\nIP: ${log.ip_address || '---'}\nDate: ${new Date(log.horodatage).toLocaleString('fr-FR')}\n\nDétails:\n${log.detaillson}`);
+    alert(`Détails du log #${logId}\n\nAction: ${log.action}\nModule: ${log.module || '---'}\nUtilisateur: ${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}\nDate: ${new Date(log.horodatage).toLocaleString('fr-FR')}\n\nDétails:\n${log.detaillson}`);
   }
 }
 
@@ -334,8 +326,8 @@ function viewLogDetails(logId) {
 function exportSingleLog(logId) {
   const log = logsData.find(l => l.idlogaudit == logId);
   if (log) {
-    let csv = '\uFEFFID,Date/Heure,Action,Module,Utilisateur,IP Address,Détails\n';
-    csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.ip_address || ''}","${log.detaillson.replace(/"/g, '""')}"`;
+    let csv = '\uFEFFID,Date/Heure,Action,Module,Utilisateur,Détails\n';
+    csv += `${log.idlogaudit},"${new Date(log.horodatage).toLocaleString('fr-FR')}","${log.action}","${log.module || ''}","${log.nom ? log.nom + ' ' + (log.prenom || '') : 'Système'}","${log.detaillson.replace(/"/g, '""')}"`;
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
