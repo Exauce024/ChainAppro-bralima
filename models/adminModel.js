@@ -178,6 +178,12 @@ class AdminModel {
     return logs;
   }
 
+  static async countAuditLogs() {
+    const [rows] = await db.execute('SELECT COUNT(*) AS total FROM logaudit');
+    return rows[0].total;
+  }
+
+
   static async updateUser(idusers, userData) {
     const { nom, prenom, email, role_libelle, statut } = userData;
     

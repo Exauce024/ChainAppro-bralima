@@ -27,7 +27,7 @@
       <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
         <i class="fas fa-history text-purple-600 text-lg"></i>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900"><%= logs.length %></h3>
+      <h3 class="text-lg font-semibold text-gray-900"><%= typeof totalLogs !== 'undefined' ? totalLogs : logs.length %></h3>
       <p class="text-sm text-gray-600">Logs</p>
     </div>
   </div>

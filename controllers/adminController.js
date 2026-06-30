@@ -10,11 +10,13 @@ class AdminController {
     const users = await AdminModel.getAllUsers();
     const fournisseurs = await AdminModel.getAllFournisseurs();
     const logs = await AdminModel.getAuditLogs(50);
+    const totalLogs = await AdminModel.countAuditLogs();
 
     res.render('layout_modern', {
       users,
       fournisseurs,
       logs,
+      totalLogs,
       user: req.session.user,
       title: 'Administration Système',
       success: null,
@@ -369,7 +371,7 @@ class AdminController {
       // Créer le document PDF
       const doc = new PDFDocument({ 
         size: 'A4', 
-        margins: { top: 70, bottom: 60, left: 40, right: 40 },
+        margins: { top: 40, bottom: 40, left: 40, right: 40 },
         info: {
           Title: 'Rapport des Logs d\'Audit - BRALIMA',
           Author: 'BRALIMA Supply Chain',
@@ -382,153 +384,125 @@ class AdminController {
       // Ajouter une police
       doc.font('Helvetica');
       
-      // En-tête avec logo BRALIMA et cadre
-      doc.fillColor('#f8f9fa').rect(40, 50, 520, 100);
-      doc.strokeColor('#1e40af').lineWidth(2);
-      doc.rect(40, 50, 520, 100);
-      doc.stroke();
+      // Logo & En-tête BRALIMA en haut de la page 1
+      const logoPath = path.join(__dirname, '../public/images/bralima-logo.png');
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 40, 30, { width: 50 });
+      }
       
-      // Logo BRALIMA
-      doc.fontSize(28).fillColor('#1e40af').font('Helvetica-Bold').text('BRALIMA', 300, 85);
-      doc.fontSize(14).fillColor('#374151').text('Supply Chain Management', 300, 115);
+      // Nom BRALIMA
+      doc.fontSize(22).fillColor('#1e40af').font('Helvetica-Bold').text('BRALIMA S.A.', 100, 35);
+      doc.fontSize(10).fillColor('#4b5563').font('Helvetica').text('Département Supply Chain & Approvisionnement', 100, 58);
+      doc.fontSize(8).fillColor('#9ca3af').text('Système automatisé de suivi d\'audit', 100, 72);
       
-      // Ligne de séparation
-      doc.strokeColor('#e5e7eb').lineWidth(1);
-      doc.moveTo(60, 130).lineTo(540, 130).stroke();
+      // Séparateur
+      doc.strokeColor('#1e40af').lineWidth(1.5).moveTo(40, 90).lineTo(555, 90).stroke();
       
-      // Titre du rapport
-      doc.fontSize(20).fillColor('#111827').font('Helvetica-Bold').text('RAPPORT D\'AUDIT SYSTÈME', { align: 'center' });
-      doc.fontSize(12).fillColor('#6b7280').text(`Généré le: ${new Date().toLocaleString('fr-FR', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}`, { align: 'center' });
-      doc.moveDown(30);
+      // Titre
+      doc.fontSize(14).fillColor('#1e293b').font('Helvetica-Bold').text('RAPPORT DES LOGS D\'AUDIT SYSTÈME', 40, 105);
+      doc.fontSize(8.5).fillColor('#64748b').font('Helvetica').text(`Généré le : ${new Date().toLocaleString('fr-FR')}`, 40, 120);
+
+      // --- SECTION STATISTIQUES (En haut de la première page) ---
+      doc.fillColor('#f8fafc').rect(40, 135, 515, 80).fill();
+      doc.strokeColor('#cbd5e1').lineWidth(0.8).rect(40, 135, 515, 80).stroke();
       
-      // Tableau des logs avec design professionnel
-      const tableTop = doc.y;
-      const headers = ['ID', 'Utilisateur', 'Module', 'Action', 'Date/Heure', 'Adresse IP', 'Détails'];
-      const colWidths = [40, 100, 70, 70, 100, 90, 80];
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#1e40af').text('STATISTIQUES DE LA PÉRIODE', 50, 145);
       
-      // En-têtes de tableau avec design
-      doc.fillColor('#1e40af').rect(40, tableTop, 560, 25);
-      doc.fill();
-      doc.strokeColor('#374151').lineWidth(1.5);
-      doc.rect(40, tableTop, 560, 25);
-      doc.stroke();
+      doc.fontSize(8.5).font('Helvetica').fillColor('#334155');
+      doc.text(`Total des activités : ${stats.total}`, 50, 165);
+      doc.text(`Aujourd'hui : ${stats.today}`, 50, 178);
+      doc.text(`Cette semaine : ${stats.thisWeek}`, 50, 191);
+      doc.text(`Utilisateurs actifs : ${stats.uniqueUsers.size}`, 50, 204);
       
-      // Texte des en-têtes
-      doc.fillColor('#ffffff').fontSize(11).font('Helvetica-Bold');
-      headers.forEach((header, index) => {
-        const xPos = 50 + (index > 0 ? colWidths.slice(0, index).reduce((a, b) => a + b, 0) + 10 : 10);
-        doc.text(header, xPos, tableTop + 8);
-      });
+      // Top modules et actions
+      const sortedModules = Object.entries(stats.byModule).sort((a, b) => b[1] - a[1]);
+      const topModuleStr = sortedModules.length > 0 ? `${sortedModules[0][0]} (${sortedModules[0][1]})` : 'Aucun';
       
-      // Ligne de séparation sous les en-têtes
-      doc.strokeColor('#d1d5db').lineWidth(0.8);
-      doc.moveTo(40, tableTop + 25).lineTo(600, tableTop + 25).stroke();
+      const sortedActions = Object.entries(stats.byAction).sort((a, b) => b[1] - a[1]);
+      const topActionStr = sortedActions.length > 0 ? `${sortedActions[0][0]} (${sortedActions[0][1]})` : 'Aucune';
       
-      let currentY = tableTop + 35;
+      doc.text(`Top Module : ${topModuleStr}`, 280, 165);
+      doc.text(`Top Action : ${topActionStr}`, 280, 178);
       
-      // Données des logs avec mise en forme professionnelle
+      // Séparateur avant le tableau
+      doc.strokeColor('#cbd5e1').lineWidth(0.5).moveTo(40, 230).lineTo(555, 230).stroke();
+      
+      // --- TABLEAU DES LOGS ---
+      doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e293b').text('ACTIVITÉS RÉCENTES', 40, 242);
+      
+      const xId = 40;
+      const xDate = 75;
+      const xUser = 170;
+      const xModule = 265;
+      const xAction = 345;
+      const xDetails = 415;
+      
+      function drawTableHeader(y) {
+        doc.fillColor('#1e40af').rect(40, y, 515, 18).fill();
+        doc.fillColor('#ffffff').fontSize(7.5).font('Helvetica-Bold');
+        doc.text('ID', xId + 5, y + 5);
+        doc.text('Date & Heure', xDate, y + 5);
+        doc.text('Utilisateur', xUser, y + 5);
+        doc.text('Module', xModule, y + 5);
+        doc.text('Action', xAction, y + 5);
+        doc.text('Détails', xDetails, y + 5);
+      }
+      
+      let currentY = 260;
+      drawTableHeader(currentY);
+      currentY += 18;
+      
+      // Données
       logs.forEach((log, index) => {
-        const userName = `${log.prenom || ''} ${log.nom || ''}`.trim();
-        const details = log.detaillson ? log.detaillson.substring(0, 50) : '';
+        const userName = `${log.prenom || ''} ${log.nom || ''}`.trim() || 'Système';
+        const details = log.detaillson || '';
         const dateStr = log.horodatage ? new Date(log.horodatage).toLocaleString('fr-FR', {
-          weekday: 'short',
-          year: 'numeric',
-          month: 'short',
           day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
           hour: '2-digit',
           minute: '2-digit'
         }) : '';
-        const ipAddr = log.adresse || 'Non spécifiée';
         
-        // Couleur de fond alternée pour meilleure lisibilité
-        const bgColor = index % 2 === 0 ? '#f8f9fa' : '#ffffff';
-        doc.fillColor(bgColor);
-        
-        // Rectangle pour la ligne avec coins arrondis
-        doc.roundedRect(50, currentY, 550, 20, 3);
-        doc.fill();
-        
-        // Bordure fine et élégante
-        doc.strokeColor('#e2e8f0').lineWidth(0.8);
-        doc.roundedRect(50, currentY, 550, 20, 3);
-        doc.stroke();
-        
-        // Texte des données avec polices variées
-        doc.fillColor('#1f2937').fontSize(10).font('Helvetica-Bold').text(log.idlog.toString(), 65, currentY + 6);
-        doc.fillColor('#374151').fontSize(9).font('Helvetica').text(userName.substring(0, 20), 140, currentY + 6);
-        doc.fillColor('#6b7280').fontSize(9).text(log.module || '', 280, currentY + 6);
-        doc.fillColor('#059669').fontSize(9).font('Helvetica').text(log.action || '', 370, currentY + 6);
-        doc.fillColor('#1f2937').fontSize(8).text(dateStr, 450, currentY + 6);
-        doc.fillColor('#64748b').fontSize(8).text(ipAddr, 470, currentY + 6);
-        doc.fillColor('#4b5563').fontSize(8).text(details, 65, currentY + 14);
-        
-        currentY += 22;
-        
-        // Nouvelle page si nécessaire avec marge de sécurité
-        if (currentY > 680) {
+        // Nouvelle page si limite atteinte
+        if (currentY > 740) {
           doc.addPage();
-          currentY = 100;
-          
-          // En-tête réduit sur nouvelle page
-          doc.fontSize(14).fillColor('#1e40af').text('BRALIMA - SUITE', { align: 'center' });
-          doc.fontSize(10).fillColor('#6b7280').text('RAPPORT D\'AUDIT SYSTÈME (Page ' + Math.floor(index / 20) + ')', { align: 'center' });
-          doc.moveDown(25);
-          
-          currentY = doc.y;
+          currentY = 40;
+          drawTableHeader(currentY);
+          currentY += 18;
         }
+        
+        // Couleur de fond alternée
+        const bgColor = index % 2 === 0 ? '#f8fafc' : '#ffffff';
+        doc.fillColor(bgColor).rect(40, currentY, 515, 18).fill();
+        
+        // Dessiner la ligne fine de séparation
+        doc.strokeColor('#f1f5f9').lineWidth(0.5).moveTo(40, currentY + 18).lineTo(555, currentY + 18).stroke();
+        
+        // Écrire les données
+        doc.fillColor('#1e293b').fontSize(7).font('Helvetica-Bold').text(log.idlog.toString(), xId + 5, currentY + 5);
+        doc.font('Helvetica').fillColor('#475569');
+        doc.text(dateStr, xDate, currentY + 5);
+        doc.text(userName.substring(0, 18), xUser, currentY + 5);
+        doc.text(log.module || '', xModule, currentY + 5);
+        
+        let actionColor = '#475569';
+        if (log.action === 'CREATE') actionColor = '#16a34a';
+        else if (log.action === 'UPDATE') actionColor = '#ca8a04';
+        else if (log.action === 'DELETE') actionColor = '#dc2626';
+        
+        doc.fillColor(actionColor).font('Helvetica-Bold').text(log.action || '', xAction, currentY + 5);
+        doc.font('Helvetica').fillColor('#334155');
+        doc.text(details.substring(0, 42), xDetails, currentY + 5, { width: 140 });
+        
+        currentY += 18;
       });
       
-      // Section statistiques avant le tableau
-      doc.moveDown(30);
-      doc.fillColor('#f8f9fa').rect(50, doc.y, 550, 80);
-      doc.fill();
-      doc.strokeColor('#d1d5db').rect(50, doc.y, 550, 80);
-      doc.stroke();
-      
-      doc.fillColor('#111827').fontSize(14).font('Helvetica-Bold').text('STATISTIQUES', 300, doc.y + 15);
-      doc.fillColor('#374151').fontSize(10).font('Helvetica');
-      
-      let statsY = doc.y + 35;
-      doc.text(`Total des logs: ${stats.total}`, 70, statsY);
-      doc.text(`Logs aujourd'hui: ${stats.today}`, 70, statsY + 15);
-      doc.text(`Logs cette semaine: ${stats.thisWeek}`, 70, statsY + 30);
-      doc.text(`Utilisateurs uniques: ${stats.uniqueUsers.size}`, 70, statsY + 45);
-      
-      // Top modules
-      doc.text('Top modules:', 350, statsY);
-      const sortedModules = Object.entries(stats.byModule).sort((a, b) => b[1] - a[1]);
-      sortedModules.slice(0, 3).forEach(([module, count], index) => {
-        doc.text(`  ${module}: ${count}`, 350, statsY + 65 + (index * 12));
-      });
-      
-      // Top actions
-      doc.text('Top actions:', 350, statsY + 100);
-      const sortedActions = Object.entries(stats.byAction).sort((a, b) => b[1] - a[1]);
-      sortedActions.slice(0, 3).forEach(([action, count], index) => {
-        doc.text(`  ${action}: ${count}`, 350, statsY + 130 + (index * 12));
-      });
-      
-      doc.moveDown(30);
-      
-      // Pied de page avec design BRALIMA
-      doc.moveTo(50, doc.y).lineTo(600, doc.y).stroke();
-      doc.moveDown(20);
-      
-      // Rectangle pour le pied de page
-      doc.fillColor('#1e40af').rect(50, doc.y, 550, 50);
-      doc.fill();
-      
-      // Texte du pied de page
-      doc.fillColor('#ffffff').fontSize(10).text(`Total des logs: ${stats.total}`, 200, doc.y + 10);
-      doc.fontSize(8).fillColor('#e5e7eb').text(`Généré le ${new Date().toLocaleString('fr-FR')}`, 200, doc.y + 25);
-      doc.fontSize(10).fillColor('#ffffff').text('BRALIMA Supply Chain Management', { align: 'center' });
+      // Dessiner un simple pied de page en bas de la dernière page
+      doc.moveDown(2);
+      doc.strokeColor('#cbd5e1').lineWidth(0.5).moveTo(40, doc.y).lineTo(555, doc.y).stroke();
+      doc.moveDown(1);
+      doc.fontSize(7).fillColor('#64748b').text('BRALIMA S.A. - Département Approvisionnement & Supply Chain. Document d\'audit confidentiel.', { align: 'center' });
       
       // Finaliser le PDF
       const fileName = `logs_audit_${Date.now()}.pdf`;
